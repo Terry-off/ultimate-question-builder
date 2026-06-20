@@ -9,7 +9,7 @@ describe("analyzeQuestion service", () => {
       model: "gpt-5.5"
     });
 
-    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("Expected validation failure");
     expect(result.error).toContain("질문이 너무 짧습니다");
   });
 

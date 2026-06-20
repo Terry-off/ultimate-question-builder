@@ -64,4 +64,18 @@ describe("main page flow", () => {
     await waitFor(() => expect(screen.getByText("질문 품질 점수")).toBeInTheDocument());
     expect(screen.getAllByText("깊은 분석 버전").length).toBeGreaterThan(0);
   });
+
+  it("clears the missing key error after the user applies an API key", async () => {
+    const user = userEvent.setup();
+    render(<Page />);
+
+    await user.click(screen.getByRole("button", { name: "질문 분석하기" }));
+    expect(screen.getAllByText("OpenAI API 키를 먼저 입력해주세요.").length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("button", { name: /API 키/ }));
+    await user.type(screen.getByLabelText("OpenAI API 키"), "sk-test");
+    await user.click(screen.getByRole("button", { name: "적용" }));
+
+    await waitFor(() => expect(screen.queryByText("OpenAI API 키를 먼저 입력해주세요.")).not.toBeInTheDocument());
+  });
 });

@@ -48,6 +48,13 @@ export default function Page() {
   const [error, setError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
 
+  const updateApiKey = (value: string) => {
+    setApiKey(value);
+    if (value) {
+      setError(undefined);
+    }
+  };
+
   const updateSelectedType = (type: QuestionType) => {
     setSelectedType(type);
     setFollowupQuestions(getFollowupQuestions(type));
@@ -126,7 +133,7 @@ export default function Page() {
           <button type="button" onClick={reset} className="rounded-md border border-line bg-white px-3 py-2 text-sm">
             처음부터 다시 만들기
           </button>
-          <ApiKeyMenu apiKey={apiKey} model={model} onApiKeyChange={setApiKey} onModelChange={setModel} />
+          <ApiKeyMenu apiKey={apiKey} model={model} onApiKeyChange={updateApiKey} onModelChange={setModel} />
         </div>
       </header>
 
@@ -153,7 +160,7 @@ export default function Page() {
           })}
         </aside>
 
-        <section className="rounded-xl border border-line bg-paper/70 p-5 md:p-8">
+        <section className="rounded-lg border border-line bg-paper/70 p-5 md:p-8">
           {error ? <p className="mb-5 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
 
           {step === "question" ? (
