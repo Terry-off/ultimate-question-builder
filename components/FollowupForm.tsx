@@ -13,13 +13,30 @@ export type FollowupFormProps = {
 
 export function FollowupForm({ questions, initialAnswers, loading = false, onSubmit }: FollowupFormProps) {
   const [answers, setAnswers] = useState<Partial<Record<FollowupPurpose, string>>>(initialAnswers);
+  const [choiceSelections, setChoiceSelections] = useState<Partial<Record<FollowupPurpose, string[]>>>({});
   const [showWarning, setShowWarning] = useState(false);
+
+  const toggleChoice = (purpose: FollowupPurpose, choice: string) => {
+    setChoiceSelections((current) => {
+      const currentChoices = current[purpose] ?? [];
+      const nextChoices = currentChoices.includes(choice)
+        ? currentChoices.filter((item) => item !== choice)
+        : [...currentChoices, choice];
+
+      return { ...current, [purpose]: nextChoices };
+    });
+  };
+
+  const combinedAnswer = (purpose: FollowupPurpose) =>
+    [...(choiceSelections[purpose] ?? []), answers[purpose]?.trim()]
+      .filter((item): item is string => Boolean(item))
+      .join("\n");
 
   const submit = () => {
     const payload = questions.map((question) => ({
       purpose: question.purpose,
       question: question.question,
-      answer: answers[question.purpose] ?? ""
+      answer: combinedAnswer(question.purpose)
     }));
     setShowWarning(!payload.find((item) => item.purpose === "goal")?.answer || !payload.find((item) => item.purpose === "context")?.answer);
     onSubmit(payload);
@@ -38,14 +55,14 @@ export function FollowupForm({ questions, initialAnswers, loading = false, onSub
             <p className="mt-2 leading-7 text-ink">{item.question}</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {item.choices.map((choice) => {
-                const selected = answers[item.purpose] === choice;
+                const selected = choiceSelections[item.purpose]?.includes(choice) ?? false;
 
                 return (
                   <button
                     key={choice}
                     type="button"
                     aria-pressed={selected}
-                    onClick={() => setAnswers((current) => ({ ...current, [item.purpose]: choice }))}
+                    onClick={() => toggleChoice(item.purpose, choice)}
                     className={`rounded-md border px-3 py-2 text-left text-sm leading-6 transition ${
                       selected ? "border-accent bg-emerald-50 font-semibold text-ink" : "border-line bg-white hover:border-accent"
                     }`}

@@ -20,7 +20,6 @@ describe("FollowupForm", () => {
     render(<FollowupForm questions={[...questions]} initialAnswers={{}} onSubmit={onSubmit} />);
 
     await user.click(screen.getByRole("button", { name: "위험한 점을 알고 싶어요" }));
-    expect(screen.getByLabelText("정하고 싶은 것 직접 입력")).toHaveValue("위험한 점을 알고 싶어요");
     await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
 
     expect(onSubmit).toHaveBeenCalledWith(
@@ -30,5 +29,28 @@ describe("FollowupForm", () => {
       ])
     );
     expect(screen.getByText("정하고 싶은 것과 지금 상황이 비어 있으면 답이 약해질 수 있어요.")).toBeInTheDocument();
+  });
+
+  it("lets users select multiple choices and add their own text", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    render(<FollowupForm questions={[...questions]} initialAnswers={{}} onSubmit={onSubmit} />);
+
+    await user.click(screen.getByRole("button", { name: "위험한 점을 알고 싶어요" }));
+    await user.click(screen.getByRole("button", { name: "첫 실험을 정하고 싶어요" }));
+    await user.type(screen.getByLabelText("정하고 싶은 것 직접 입력"), "돈을 낼 고객도 같이 보고 싶어요");
+    await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
+
+    expect(screen.getByRole("button", { name: "위험한 점을 알고 싶어요" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "첫 실험을 정하고 싶어요" })).toHaveAttribute("aria-pressed", "true");
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          purpose: "goal",
+          answer: ["위험한 점을 알고 싶어요", "첫 실험을 정하고 싶어요", "돈을 낼 고객도 같이 보고 싶어요"].join("\n")
+        })
+      ])
+    );
   });
 });
