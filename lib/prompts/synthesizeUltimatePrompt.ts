@@ -1,12 +1,17 @@
-import type { FollowupAnswer, QuestionAnalysis } from "../types";
+import { QUESTION_TYPE_LABELS } from "../questionTypes";
+import type { DirectionSetting, FollowupAnswer, QuestionAnalysis } from "../types";
 
 export function buildSynthesizeUltimatePrompt(input: {
   rawQuestion: string;
   analysis: QuestionAnalysis;
+  directionSettings: DirectionSetting[];
   followupAnswers: FollowupAnswer[];
 }) {
   const answers = input.followupAnswers
     .map((item) => `- ${item.purpose}: ${item.answer.trim() || "정보 없음"}`)
+    .join("\n");
+  const directionSettings = input.directionSettings
+    .map((item) => `- ${QUESTION_TYPE_LABELS[item.type]}: ${item.weight}/100 (${item.reason})`)
     .join("\n");
 
   return `너는 사용자의 평범한 질문을 AI가 깊게 사고할 수밖에 없는 궁극 질문 프롬프트로 재설계한다.
@@ -19,6 +24,9 @@ ${input.rawQuestion}
 - secondaryTypes: ${input.analysis.secondaryTypes.join(", ") || "없음"}
 - deeperIntent: ${input.analysis.deeperIntent}
 - genericAnswerRisk: ${input.analysis.genericAnswerRisk}
+
+사용자가 조절한 질문 방향:
+${directionSettings}
 
 사용자의 후속 답변:
 ${answers}
@@ -37,5 +45,6 @@ ${answers}
 - 추상/구체 왕복
 - 실행/검증 방법
 
+사용자가 조절한 질문 방향의 점수가 높을수록 최종 프롬프트에 더 강하게 반영하라. 30 이하인 방향은 약하게 참고하고, 70 이상인 방향은 핵심 요구로 다뤄라.
 한국어로 작성하고, 뻔한 일반론과 블로그식 조언을 피하라.`;
 }

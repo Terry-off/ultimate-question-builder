@@ -1,20 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { FOLLOWUP_PURPOSE_LABELS, type FollowupPurpose } from "@/lib/questionTypes";
-import type { FollowupAnswer, FollowupQuestion } from "@/lib/types";
+import { useEffect, useState } from "react";
+import { FOLLOWUP_PURPOSE_LABELS, QUESTION_TYPE_LABELS, type FollowupPurpose } from "@/lib/questionTypes";
+import type { DirectionSetting, FollowupAnswer, FollowupQuestion } from "@/lib/types";
 
 export type FollowupFormProps = {
   questions: FollowupQuestion[];
+  directionSettings: DirectionSetting[];
   initialAnswers: Partial<Record<FollowupPurpose, string>>;
   loading?: boolean;
-  onSubmit: (answers: FollowupAnswer[]) => void;
+  onSubmit: (answers: FollowupAnswer[], directionSettings: DirectionSetting[]) => void;
 };
 
-export function FollowupForm({ questions, initialAnswers, loading = false, onSubmit }: FollowupFormProps) {
+export function FollowupForm({ questions, directionSettings, initialAnswers, loading = false, onSubmit }: FollowupFormProps) {
   const [answers, setAnswers] = useState<Partial<Record<FollowupPurpose, string>>>(initialAnswers);
   const [choiceSelections, setChoiceSelections] = useState<Partial<Record<FollowupPurpose, string[]>>>({});
+  const [settings, setSettings] = useState<DirectionSetting[]>(directionSettings);
   const [showWarning, setShowWarning] = useState(false);
+
+  useEffect(() => {
+    setSettings(directionSettings);
+  }, [directionSettings]);
+
+  const updateWeight = (type: DirectionSetting["type"], weight: number) => {
+    setSettings((current) => current.map((item) => (item.type === type ? { ...item, weight } : item)));
+  };
 
   const toggleChoice = (purpose: FollowupPurpose, choice: string) => {
     setChoiceSelections((current) => {
@@ -39,15 +49,44 @@ export function FollowupForm({ questions, initialAnswers, loading = false, onSub
       answer: combinedAnswer(question.purpose)
     }));
     setShowWarning(!payload.find((item) => item.purpose === "goal")?.answer || !payload.find((item) => item.purpose === "context")?.answer);
-    onSubmit(payload);
+    onSubmit(payload, settings);
   };
 
   return (
     <section className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-accent">Step 3</p>
+        <p className="text-sm font-semibold text-accent">Step 2</p>
         <h2 className="mt-2 text-3xl font-semibold text-ink">더 강한 질문을 만들기 위해 5가지만 답해주세요.</h2>
       </div>
+      <section className="rounded-lg border border-line bg-white p-4">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-sm font-semibold text-accent">AI가 이해한 방향</p>
+            <p className="mt-1 text-sm text-gray-600">조절바를 움직이면 최종 질문에 반영되는 정도가 달라져요.</p>
+          </div>
+        </div>
+        <div className="mt-4 space-y-4">
+          {settings.map((item) => (
+            <label key={item.type} className="block">
+              <span className="flex items-center justify-between gap-3 text-sm font-semibold text-ink">
+                <span>{QUESTION_TYPE_LABELS[item.type]}</span>
+                <span className="text-accent">{item.weight}</span>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={item.weight}
+                aria-label={`${QUESTION_TYPE_LABELS[item.type]} 반영 정도`}
+                onChange={(event) => updateWeight(item.type, Number(event.target.value))}
+                className="mt-2 w-full accent-teal-700"
+              />
+              <span className="mt-1 block text-xs leading-5 text-gray-500">{item.reason}</span>
+            </label>
+          ))}
+        </div>
+      </section>
       <div className="space-y-4">
         {questions.map((item) => (
           <section key={item.id} className="rounded-lg border border-line bg-white p-4">

@@ -21,6 +21,10 @@ export const questionTypeOptionSchema = z.object({
   reason: z.string().min(1).max(120)
 });
 
+export const directionSettingSchema = questionTypeOptionSchema.extend({
+  weight: z.number().min(0).max(100)
+});
+
 export const followupQuestionSchema = z.object({
   id: followupPurposeSchema,
   purpose: followupPurposeSchema,
@@ -82,11 +86,13 @@ export const synthesizePromptRequestSchema = z.object({
   apiKey: apiKeySchema,
   model: modelSchema,
   analysis: questionAnalysisSchema,
+  directionSettings: z.array(directionSettingSchema).min(1).max(3),
   followupAnswers: z.array(followupAnswerSchema).length(5)
 });
 
 export type QuestionAnalysis = z.infer<typeof questionAnalysisSchema>;
 export type QuestionTypeOption = z.infer<typeof questionTypeOptionSchema>;
+export type DirectionSetting = z.infer<typeof directionSettingSchema>;
 export type FollowupQuestion = z.infer<typeof followupQuestionSchema>;
 export type FollowupAnswer = z.infer<typeof followupAnswerSchema>;
 export type QualityScore = z.infer<typeof qualityScoreSchema>;

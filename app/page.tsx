@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnalysisCard } from "@/components/AnalysisCard";
 import { ApiKeyMenu } from "@/components/ApiKeyMenu";
 import { FollowupForm } from "@/components/FollowupForm";
 import { QuestionInput } from "@/components/QuestionInput";
 import { ResultTabs } from "@/components/ResultTabs";
-import { getFollowupQuestions } from "@/lib/followupTemplates";
-import { DEFAULT_MODEL, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type UltimatePromptResult } from "@/lib/types";
+import { DEFAULT_MODEL, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type QuestionTypeOption, type UltimatePromptResult } from "@/lib/types";
 import type { FollowupPurpose, QuestionType } from "@/lib/questionTypes";
 
-type Step = "question" | "analysis" | "followups" | "result";
+type Step = "question" | "followups" | "result";
 const API_KEY_STORAGE_KEY = "ultimate-question-builder:openai-api-key";
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -30,10 +28,28 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 
 const stepLabels: Record<Step, string> = {
   question: "질문 입력",
-  analysis: "분석",
   followups: "후속 답변",
   result: "결과"
 };
+
+function createDirectionSettings(analysis: QuestionAnalysis): DirectionSetting[] {
+  const seen = new Set<QuestionType>();
+  const options: QuestionTypeOption[] = [];
+  const push = (option: QuestionTypeOption) => {
+    if (seen.has(option.type) || options.length >= 3) return;
+    seen.add(option.type);
+    options.push(option);
+  };
+
+  analysis.recommendedTypeOptions.forEach(push);
+  push({ type: analysis.primaryType, reason: "AI가 가장 잘 맞는 방향으로 봤어요." });
+  analysis.secondaryTypes.forEach((type) => push({ type, reason: "이 방향도 함께 생각해볼 만해요." }));
+
+  return options.map((option, index) => ({
+    ...option,
+    weight: option.type === analysis.primaryType ? 80 : index === 1 ? 45 : 30
+  }));
+}
 
 function readStoredApiKey() {
   try {
@@ -61,7 +77,7 @@ export default function Page() {
   const [step, setStep] = useState<Step>("question");
   const [rawQuestion, setRawQuestion] = useState("");
   const [analysis, setAnalysis] = useState<QuestionAnalysis | null>(null);
-  const [selectedType, setSelectedType] = useState<QuestionType>("perspective_interpretation");
+  const [directionSettings, setDirectionSettings] = useState<DirectionSetting[]>([]);
   const [followupQuestions, setFollowupQuestions] = useState<FollowupQuestion[]>([]);
   const [followupAnswers, setFollowupAnswers] = useState<FollowupAnswer[]>([]);
   const [answerDrafts, setAnswerDrafts] = useState<Partial<Record<FollowupPurpose, string>>>({});
@@ -86,12 +102,6 @@ export default function Page() {
     }
   };
 
-  const updateSelectedType = (type: QuestionType) => {
-    setSelectedType(type);
-    setFollowupQuestions(analysis && type === analysis.primaryType ? analysis.followupQuestions : getFollowupQuestions(type));
-    setAnswerDrafts({});
-  };
-
   const analyze = async () => {
     if (!apiKey) {
       setError("OpenAI API 키를 먼저 입력해주세요.");
@@ -103,9 +113,9 @@ export default function Page() {
     try {
       const data = await postJson<QuestionAnalysis>("/api/analyze-question", { rawQuestion, apiKey, model });
       setAnalysis(data);
-      setSelectedType(data.primaryType);
+      setDirectionSettings(createDirectionSettings(data));
       setFollowupQuestions(data.followupQuestions);
-      setStep("analysis");
+      setStep("followups");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "분석에 실패했습니다.");
     } finally {
@@ -113,7 +123,7 @@ export default function Page() {
     }
   };
 
-  const synthesize = async (answers: FollowupAnswer[]) => {
+  const synthesize = async (answers: FollowupAnswer[], settings: DirectionSetting[]) => {
     if (!analysis) return;
     if (!apiKey) {
       setError("OpenAI API 키를 먼저 입력해주세요.");
@@ -129,7 +139,8 @@ export default function Page() {
         rawQuestion,
         apiKey,
         model,
-        analysis: { ...analysis, primaryType: selectedType },
+        analysis,
+        directionSettings: settings,
         followupAnswers: answers
       });
       setResult(data);
@@ -145,7 +156,7 @@ export default function Page() {
     setStep("question");
     setRawQuestion("");
     setAnalysis(null);
-    setSelectedType("perspective_interpretation");
+    setDirectionSettings([]);
     setFollowupQuestions([]);
     setFollowupAnswers([]);
     setAnswerDrafts({});
@@ -205,17 +216,14 @@ export default function Page() {
             />
           ) : null}
 
-          {step === "analysis" && analysis ? (
-            <AnalysisCard
-              analysis={analysis}
-              selectedType={selectedType}
-              onTypeChange={updateSelectedType}
-              onContinue={() => setStep("followups")}
-            />
-          ) : null}
-
           {step === "followups" ? (
-            <FollowupForm questions={followupQuestions} initialAnswers={answerDrafts} loading={loading} onSubmit={synthesize} />
+            <FollowupForm
+              questions={followupQuestions}
+              directionSettings={directionSettings}
+              initialAnswers={answerDrafts}
+              loading={loading}
+              onSubmit={synthesize}
+            />
           ) : null}
 
           {step === "result" && result ? (

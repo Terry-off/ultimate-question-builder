@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Page from "@/app/page";
@@ -67,11 +67,10 @@ describe("main page flow", () => {
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "AI 질문 생성 앱의 사업성이 있을지 알고 싶어.");
     await user.click(screen.getByRole("button", { name: "질문 분석하기" }));
 
-    expect(await screen.findByText("시장 가능성과 실패 가능성을 알고 싶어한다.")).toBeInTheDocument();
-    expect(screen.getAllByText("사업 가능성을 보고 싶어요").length).toBeGreaterThan(0);
-    expect(screen.getByText("실패할 수 있는 이유도 같이 봐야 해요.")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "후속 질문 답하기" }));
-
+    expect(await screen.findByText("AI가 이해한 방향")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "후속 질문 답하기" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("사업 가능성을 보고 싶어요 반영 정도")).toHaveValue("80");
+    fireEvent.change(screen.getByLabelText("사업 가능성을 보고 싶어요 반영 정도"), { target: { value: "95" } });
     expect(screen.getByText("이번 답으로 무엇을 정하고 싶나요?")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "위험한 점을 알고 싶어요" }));
     await user.click(screen.getByRole("button", { name: "간단히 만들어봤어요" }));
@@ -79,6 +78,12 @@ describe("main page flow", () => {
 
     await waitFor(() => expect(screen.getByText("질문 품질 점수")).toBeInTheDocument());
     expect(screen.getAllByText("깊은 분석 버전").length).toBeGreaterThan(0);
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/synthesize-ultimate-prompt",
+      expect.objectContaining({
+        body: expect.stringContaining("\"weight\":95")
+      })
+    );
   });
 
   it("clears the missing key error after the user applies an API key", async () => {
@@ -112,7 +117,7 @@ describe("main page flow", () => {
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "저장된 API 키로 바로 분석되는지 확인하고 싶어.");
     await user.click(screen.getByRole("button", { name: "질문 분석하기" }));
 
-    await screen.findByText("시장 가능성과 실패 가능성을 알고 싶어한다.");
+    await screen.findByText("AI가 이해한 방향");
     expect(fetch).toHaveBeenCalledWith(
       "/api/analyze-question",
       expect.objectContaining({

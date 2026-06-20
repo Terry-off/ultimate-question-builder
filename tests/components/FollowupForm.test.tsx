@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { FollowupForm } from "@/components/FollowupForm";
-import type { FollowupQuestion } from "@/lib/types";
+import type { DirectionSetting, FollowupQuestion } from "@/lib/types";
 
 const questions: FollowupQuestion[] = [
   { id: "goal", purpose: "goal", question: "무엇을 정하고 싶나요?", choices: ["사업을 계속할지 정하고 싶어요", "고객을 정하고 싶어요", "위험한 점을 알고 싶어요", "첫 실험을 정하고 싶어요"] },
@@ -12,12 +12,17 @@ const questions: FollowupQuestion[] = [
   { id: "output_or_validation", purpose: "output_or_validation", question: "어떤 형태의 답이 필요하나요?", choices: ["바로 할 일 목록", "위험도 높은 순서", "검증 실험 3개", "짧은 결론 먼저"] }
 ];
 
+const directionSettings: DirectionSetting[] = [
+  { type: "strategy_business", reason: "사업 가능성을 먼저 봐야 해요.", weight: 80 },
+  { type: "critique_risk", reason: "실패할 수 있는 이유도 같이 봐야 해요.", weight: 45 }
+];
+
 describe("FollowupForm", () => {
   it("collects answers and submits all five purposes", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
 
-    render(<FollowupForm questions={[...questions]} initialAnswers={{}} onSubmit={onSubmit} />);
+    render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
 
     await user.click(screen.getByRole("button", { name: "위험한 점을 알고 싶어요" }));
     await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
@@ -26,7 +31,8 @@ describe("FollowupForm", () => {
       expect.arrayContaining([
         expect.objectContaining({ purpose: "goal", answer: "위험한 점을 알고 싶어요" }),
         expect.objectContaining({ purpose: "context", answer: "" })
-      ])
+      ]),
+      directionSettings
     );
     expect(screen.getByText("정하고 싶은 것과 지금 상황이 비어 있으면 답이 약해질 수 있어요.")).toBeInTheDocument();
   });
@@ -35,7 +41,7 @@ describe("FollowupForm", () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
 
-    render(<FollowupForm questions={[...questions]} initialAnswers={{}} onSubmit={onSubmit} />);
+    render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
 
     await user.click(screen.getByRole("button", { name: "위험한 점을 알고 싶어요" }));
     await user.click(screen.getByRole("button", { name: "첫 실험을 정하고 싶어요" }));
@@ -50,6 +56,25 @@ describe("FollowupForm", () => {
           purpose: "goal",
           answer: ["위험한 점을 알고 싶어요", "첫 실험을 정하고 싶어요", "돈을 낼 고객도 같이 보고 싶어요"].join("\n")
         })
+      ]),
+      directionSettings
+    );
+  });
+
+  it("submits adjusted direction slider values", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText("사업 가능성을 보고 싶어요 반영 정도"), { target: { value: "95" } });
+    await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.arrayContaining([
+        expect.objectContaining({ type: "strategy_business", weight: 95 }),
+        expect.objectContaining({ type: "critique_risk", weight: 45 })
       ])
     );
   });

@@ -26,6 +26,10 @@ const validInput = {
       { id: "output_or_validation", purpose: "output_or_validation", question: "답변 형태는 무엇이 좋나요?", choices: ["목록", "표", "순서", "결론"] }
     ]
   },
+  directionSettings: [
+    { type: "strategy_business", reason: "사업 가능성을 먼저 봐야 해요.", weight: 95 },
+    { type: "critique_risk", reason: "실패할 수 있는 이유도 같이 봐야 해요.", weight: 40 }
+  ],
   followupAnswers: [
     { purpose: "goal", question: "목표", answer: "시장 검증에 쓰고 싶다." },
     { purpose: "context", question: "맥락", answer: "초기 MVP를 만들고 있다." },
@@ -52,6 +56,8 @@ describe("synthesizeUltimatePrompt service", () => {
       expect(result.data.deepVersion).toContain("관점 충돌");
       expect(result.data.qualityScore.total).toBeGreaterThan(70);
     }
+    expect(requestStructuredOutput.mock.calls[0]?.[0].prompt).toContain("사업 가능성을 보고 싶어요: 95/100");
+    expect(requestStructuredOutput.mock.calls[0]?.[0].prompt).toContain("위험한 점을 미리 보고 싶어요: 40/100");
   });
 
   it("returns an error after two synthesis failures", async () => {

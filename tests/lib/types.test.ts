@@ -79,6 +79,10 @@ describe("shared schemas", () => {
           { id: "output_or_validation", purpose: "output_or_validation", question: "답변 형태는 무엇이 좋나요?", choices: ["목록", "표", "순서", "결론"] }
         ]
       },
+      directionSettings: [
+        { type: "strategy_business", reason: "사업 가능성을 먼저 봐야 해요.", weight: 95 },
+        { type: "critique_risk", reason: "실패할 수 있는 이유도 같이 봐야 해요.", weight: 40 }
+      ],
       followupAnswers: [
         { purpose: "goal", question: "목표는?", answer: "" },
         { purpose: "context", question: "맥락은?", answer: "" },
@@ -89,6 +93,7 @@ describe("shared schemas", () => {
     });
 
     expect(request.followupAnswers[0].answer).toBe("");
+    expect(request.directionSettings[0].weight).toBe(95);
   });
 
   it("accepts a valid ultimate prompt result", () => {
