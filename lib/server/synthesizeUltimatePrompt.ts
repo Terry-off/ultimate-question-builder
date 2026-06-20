@@ -1,0 +1,56 @@
+import { requestStructuredOutput, type RequestStructuredOutputInput } from "../llm";
+import { ultimatePromptResultJsonSchema } from "../openaiSchemas";
+import { buildSynthesizeUltimatePrompt } from "../prompts/synthesizeUltimatePrompt";
+import { buildImprovementSuggestions, calculateQualityScore } from "../qualityScore";
+import { synthesizePromptRequestSchema, ultimatePromptResultSchema, type UltimatePromptResult } from "../types";
+
+type ServiceResult<T> = { ok: true; data: T } | { ok: false; error: string; status: number };
+type StructuredRequester = (input: RequestStructuredOutputInput<any>) => Promise<any>;
+
+const modelOutputSchema = ultimatePromptResultSchema.omit({ qualityScore: true });
+
+export async function synthesizeUltimatePrompt(
+  input: unknown,
+  structuredRequester: StructuredRequester = requestStructuredOutput
+): Promise<ServiceResult<UltimatePromptResult>> {
+  const parsed = synthesizePromptRequestSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "입력값을 확인해주세요.", status: 400 };
+  }
+
+  const request = parsed.data;
+  const prompt = buildSynthesizeUltimatePrompt(request);
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const modelResult = await structuredRequester({
+        apiKey: request.apiKey,
+        model: request.model,
+        prompt: attempt === 0 ? prompt : `${prompt}\n\n이전 응답은 유효한 JSON이 아니었다. 스키마에 맞는 JSON만 출력하라.`,
+        schemaName: "ultimate_prompt_result",
+        jsonSchema: ultimatePromptResultJsonSchema,
+        schema: modelOutputSchema
+      });
+      const qualityScore = calculateQualityScore({
+        promptText: `${modelResult.shortVersion}\n${modelResult.deepVersion}\n${modelResult.expertVersion}`,
+        followupAnswers: request.followupAnswers
+      });
+      return {
+        ok: true,
+        data: {
+          ...modelResult,
+          qualityScore,
+          improvementSuggestions: [
+            ...modelResult.improvementSuggestions,
+            ...buildImprovementSuggestions(qualityScore)
+          ]
+        }
+      };
+    } catch {
+      continue;
+    }
+  }
+
+  return { ok: false, error: "궁극 질문 생성에 실패했습니다. 잠시 후 다시 시도해주세요.", status: 502 };
+}
