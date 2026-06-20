@@ -47,7 +47,7 @@ export function ApiKeyMenu({ apiKey, model, onApiKeyChange, onModelChange }: Api
             onChange={(event) => onModelChange(event.target.value)}
             className="mt-2 w-full rounded-md border border-line px-3 py-2"
           />
-          <p className="mt-3 text-xs text-gray-500">키는 현재 탭 메모리에만 유지되며 새로고침하면 사라집니다.</p>
+          <p className="mt-3 text-xs text-gray-500">키는 이 브라우저에 저장되어 다음 방문에도 유지됩니다.</p>
           <button
             type="button"
             onClick={() => {

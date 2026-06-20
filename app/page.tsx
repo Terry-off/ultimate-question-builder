@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnalysisCard } from "@/components/AnalysisCard";
 import { ApiKeyMenu } from "@/components/ApiKeyMenu";
 import { FollowupForm } from "@/components/FollowupForm";
@@ -11,6 +11,7 @@ import { DEFAULT_MODEL, type FollowupAnswer, type FollowupQuestion, type Questio
 import type { FollowupPurpose, QuestionType } from "@/lib/questionTypes";
 
 type Step = "question" | "analysis" | "followups" | "result";
+const API_KEY_STORAGE_KEY = "ultimate-question-builder:openai-api-key";
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const response = await fetch(url, {
@@ -34,6 +35,26 @@ const stepLabels: Record<Step, string> = {
   result: "결과"
 };
 
+function readStoredApiKey() {
+  try {
+    return window.localStorage.getItem(API_KEY_STORAGE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function saveStoredApiKey(value: string) {
+  try {
+    if (value) {
+      window.localStorage.setItem(API_KEY_STORAGE_KEY, value);
+    } else {
+      window.localStorage.removeItem(API_KEY_STORAGE_KEY);
+    }
+  } catch {
+    // Some browsers can block localStorage; the in-memory key still works.
+  }
+}
+
 export default function Page() {
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(DEFAULT_MODEL);
@@ -48,9 +69,19 @@ export default function Page() {
   const [error, setError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const storedApiKey = readStoredApiKey();
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+      setError(undefined);
+    }
+  }, []);
+
   const updateApiKey = (value: string) => {
-    setApiKey(value);
-    if (value) {
+    const nextApiKey = value.trim();
+    setApiKey(nextApiKey);
+    saveStoredApiKey(nextApiKey);
+    if (nextApiKey) {
       setError(undefined);
     }
   };

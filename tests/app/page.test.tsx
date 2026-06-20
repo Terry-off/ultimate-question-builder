@@ -5,6 +5,7 @@ import Page from "@/app/page";
 
 describe("main page flow", () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.stubGlobal("fetch", vi.fn(async (url: string) => {
       if (url.includes("/api/analyze-question")) {
         return new Response(JSON.stringify({
@@ -92,5 +93,31 @@ describe("main page flow", () => {
     await user.click(screen.getByRole("button", { name: "적용" }));
 
     await waitFor(() => expect(screen.queryByText("OpenAI API 키를 먼저 입력해주세요.")).not.toBeInTheDocument());
+  });
+
+  it("saves the API key and restores it on the next visit", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<Page />);
+
+    await user.click(screen.getByRole("button", { name: /API 키/ }));
+    await user.type(screen.getByLabelText("OpenAI API 키"), "sk-persisted");
+    await user.click(screen.getByRole("button", { name: "적용" }));
+
+    expect(localStorage.getItem("ultimate-question-builder:openai-api-key")).toBe("sk-persisted");
+
+    unmount();
+    render(<Page />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /API 키 설정됨/ })).toBeInTheDocument());
+    await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "저장된 API 키로 바로 분석되는지 확인하고 싶어.");
+    await user.click(screen.getByRole("button", { name: "질문 분석하기" }));
+
+    await screen.findByText("시장 가능성과 실패 가능성을 알고 싶어한다.");
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/analyze-question",
+      expect.objectContaining({
+        body: expect.stringContaining("sk-persisted")
+      })
+    );
   });
 });
