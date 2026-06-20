@@ -16,6 +16,18 @@ const rawQuestionSchema = z
 const apiKeySchema = z.string().trim().min(1, "OpenAI API 키를 입력해주세요.");
 const modelSchema = z.string().trim().min(1).default(DEFAULT_MODEL);
 
+export const questionTypeOptionSchema = z.object({
+  type: questionTypeSchema,
+  reason: z.string().min(1).max(120)
+});
+
+export const followupQuestionSchema = z.object({
+  id: followupPurposeSchema,
+  purpose: followupPurposeSchema,
+  question: z.string().min(1).max(120),
+  choices: z.array(z.string().min(1).max(80)).length(4)
+});
+
 export const questionAnalysisSchema = z.object({
   primaryType: questionTypeSchema,
   secondaryTypes: z.array(questionTypeSchema).max(2),
@@ -24,13 +36,9 @@ export const questionAnalysisSchema = z.object({
   deeperIntent: z.string().min(1),
   genericAnswerRisk: z.string().min(1),
   missingDimensions: z.array(z.string()).max(8),
-  recommendedFollowupFocus: z.array(followupPurposeSchema).max(5)
-});
-
-export const followupQuestionSchema = z.object({
-  id: followupPurposeSchema,
-  purpose: followupPurposeSchema,
-  question: z.string().min(1)
+  recommendedFollowupFocus: z.array(followupPurposeSchema).max(5),
+  recommendedTypeOptions: z.array(questionTypeOptionSchema).min(1).max(3),
+  followupQuestions: z.array(followupQuestionSchema).length(5)
 });
 
 export const followupAnswerSchema = z.object({
@@ -78,6 +86,7 @@ export const synthesizePromptRequestSchema = z.object({
 });
 
 export type QuestionAnalysis = z.infer<typeof questionAnalysisSchema>;
+export type QuestionTypeOption = z.infer<typeof questionTypeOptionSchema>;
 export type FollowupQuestion = z.infer<typeof followupQuestionSchema>;
 export type FollowupAnswer = z.infer<typeof followupAnswerSchema>;
 export type QualityScore = z.infer<typeof qualityScoreSchema>;

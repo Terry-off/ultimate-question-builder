@@ -1,89 +1,143 @@
-import type { FollowupPurpose, QuestionType } from "./questionTypes";
+import { FOLLOWUP_PURPOSES, type FollowupPurpose, type QuestionType } from "./questionTypes";
 
 export type FollowupQuestion = {
   id: FollowupPurpose;
   purpose: FollowupPurpose;
   question: string;
+  choices: string[];
 };
 
-type TemplateItem = Omit<FollowupQuestion, "id">;
+type TypeCopy = {
+  subject: string;
+  goal: string[];
+  context: string[];
+  known: string[];
+  tension: string[];
+  output: string[];
+};
 
-const withIds = (items: TemplateItem[]): FollowupQuestion[] =>
-  items.map((item) => ({ id: item.purpose, ...item }));
+const TYPE_COPY: Record<QuestionType, TypeCopy> = {
+  research_fact: {
+    subject: "확인할 정보",
+    goal: ["정확한 사실을 알고 싶어요", "근거 있는 출처가 필요해요", "보고서에 넣고 싶어요", "틀린 정보를 걸러내고 싶어요"],
+    context: ["최신 정보가 중요해요", "한국 기준이 필요해요", "해외 사례도 보고 싶어요", "숫자와 기준이 중요해요"],
+    known: ["광고성 글은 빼주세요", "출처 없는 말은 빼주세요", "너무 오래된 정보는 빼주세요", "기본 설명은 알고 있어요"],
+    tension: ["자료마다 말이 달라요", "믿을 만한 출처가 걱정돼요", "예외 조건이 있을 것 같아요", "숫자가 왜 다른지 궁금해요"],
+    output: ["핵심만 요약해주세요", "출처 중심으로 정리해주세요", "표로 비교해주세요", "틀릴 수 있는 점도 말해주세요"]
+  },
+  concept_learning: {
+    subject: "배울 내용",
+    goal: ["처음부터 쉽게 알고 싶어요", "예시로 이해하고 싶어요", "시험처럼 확인하고 싶어요", "일에 써먹고 싶어요"],
+    context: ["완전 처음이에요", "이름만 들어봤어요", "조금 배웠지만 헷갈려요", "실무 예시가 필요해요"],
+    known: ["어려운 용어는 줄여주세요", "수식 설명은 줄여주세요", "긴 역사 설명은 빼주세요", "이미 기본 뜻은 알아요"],
+    tension: ["비슷한 말과 헷갈려요", "왜 중요한지 모르겠어요", "어디에 쓰는지 궁금해요", "틀리기 쉬운 점이 걱정돼요"],
+    output: ["중학생도 알게 설명해주세요", "비유로 풀어주세요", "예시 3개로 보여주세요", "마지막에 퀴즈를 주세요"]
+  },
+  perspective_interpretation: {
+    subject: "살펴볼 주제",
+    goal: ["다른 관점이 필요해요", "내 생각을 넓히고 싶어요", "반대 의견도 보고 싶어요", "글쓰기 재료가 필요해요"],
+    context: ["내 생각이 아직 흐려요", "한쪽 의견만 봤어요", "사람마다 말이 달라요", "결론보다 관점이 중요해요"],
+    known: ["뻔한 찬반은 빼주세요", "정답처럼 말하지 마세요", "너무 철학적이면 어려워요", "이미 흔한 해석은 알아요"],
+    tension: ["좋은 점과 나쁜 점이 섞여요", "사람마다 기준이 달라요", "감정과 사실이 엉켜 있어요", "쉽게 결론 내리기 어려워요"],
+    output: ["관점 3개로 나눠주세요", "찬반을 같이 보여주세요", "새 질문을 만들어주세요", "짧은 결론도 주세요"]
+  },
+  idea_generation: {
+    subject: "아이디어",
+    goal: ["새 아이디어가 필요해요", "더 좋은 방향을 찾고 싶어요", "차별점을 만들고 싶어요", "작게 실험해보고 싶어요"],
+    context: ["아직 막 떠올린 단계예요", "비슷한 예시를 봤어요", "사용자를 정하는 중이에요", "실행 방법이 고민이에요"],
+    known: ["너무 흔한 아이디어는 빼주세요", "돈 많이 드는 건 빼주세요", "혼자 못 하는 건 빼주세요", "이미 해본 건 제외해주세요"],
+    tension: ["새롭지만 어려울까 걱정돼요", "쉬우면 너무 흔할 것 같아요", "사람들이 쓸지 모르겠어요", "작게 시작하고 싶어요"],
+    output: ["아이디어 5개를 주세요", "가장 좋은 3개만 골라주세요", "실험 방법도 붙여주세요", "이름까지 제안해주세요"]
+  },
+  strategy_business: {
+    subject: "제품이나 사업",
+    goal: ["사업을 계속할지 정하고 싶어요", "고객을 정하고 싶어요", "위험한 점을 알고 싶어요", "첫 실험을 정하고 싶어요"],
+    context: ["처음 떠올린 단계예요", "주변 반응을 들었어요", "간단히 만들어봤어요", "돈을 낸 사람이 있어요"],
+    known: ["뻔한 장단점은 빼주세요", "큰 회사 사례는 빼주세요", "기술 설명은 줄여주세요", "이미 경쟁자는 봤어요"],
+    tension: ["고객이 돈을 낼지 모르겠어요", "경쟁 앱과 다를지 걱정돼요", "혼자 만들 수 있을지 모르겠어요", "처음 고객을 찾기 어려워요"],
+    output: ["바로 할 일 목록", "위험도 높은 순서", "검증 실험 3개", "짧은 결론 먼저"]
+  },
+  decision_comparison: {
+    subject: "선택지",
+    goal: ["하나를 고르고 싶어요", "장단점을 비교하고 싶어요", "조건별 추천이 필요해요", "후회할 점을 보고 싶어요"],
+    context: ["선택지가 2개예요", "선택지가 여러 개예요", "시간이 별로 없어요", "돈이 중요한 선택이에요"],
+    known: ["이미 마음이 기운 쪽이 있어요", "가격 비교는 했어요", "뻔한 장단점은 빼주세요", "광고 같은 말은 싫어요"],
+    tension: ["안전한 선택이 끌려요", "성장 가능성도 보고 싶어요", "지금 이득과 나중 이득이 달라요", "감정과 계산이 충돌해요"],
+    output: ["추천 하나를 말해주세요", "점수표로 비교해주세요", "조건별로 골라주세요", "최악의 경우도 말해주세요"]
+  },
+  problem_diagnosis: {
+    subject: "문제",
+    goal: ["원인을 찾고 싶어요", "먼저 고칠 것을 알고 싶어요", "해결 방법을 정하고 싶어요", "반복되는 이유를 알고 싶어요"],
+    context: ["최근에 생긴 문제예요", "오래 반복된 문제예요", "숫자로 보이는 문제가 있어요", "사람 반응이 안 좋아요"],
+    known: ["이미 시도한 방법이 있어요", "겉핥기 조언은 빼주세요", "책임 추궁은 원하지 않아요", "큰돈 드는 해결은 빼주세요"],
+    tension: ["진짜 원인이 헷갈려요", "증상과 원인이 달라 보여요", "작은 문제가 커질까 걱정돼요", "해결해도 다시 생길까 걱정돼요"],
+    output: ["원인 후보를 순서대로", "바로 할 실험 3개", "체크리스트로 주세요", "가장 먼저 할 일 하나"]
+  },
+  critique_risk: {
+    subject: "검토할 생각",
+    goal: ["위험한 점을 찾고 싶어요", "반대 의견을 보고 싶어요", "계획을 더 튼튼하게 하고 싶어요", "실패 이유를 미리 보고 싶어요"],
+    context: ["아직 아이디어 단계예요", "곧 실행하려고 해요", "다른 사람을 설득해야 해요", "큰 결정을 앞두고 있어요"],
+    known: ["칭찬만 하는 답은 싫어요", "너무 공격적인 말은 싫어요", "이미 장점은 알고 있어요", "현실적인 지적이 필요해요"],
+    tension: ["내가 놓친 게 있을까 걱정돼요", "가정이 틀릴 수 있어요", "사람들이 반대할 수 있어요", "실행 중에 막힐 수 있어요"],
+    output: ["가장 큰 위험 5개", "반대 질문 목록", "보완 방법까지", "실패 시나리오로"]
+  },
+  execution_roadmap: {
+    subject: "실행할 일",
+    goal: ["무엇부터 할지 알고 싶어요", "일정을 짜고 싶어요", "역할을 나누고 싶어요", "막히는 지점을 줄이고 싶어요"],
+    context: ["혼자 할 일이에요", "팀과 같이 해요", "일주일 안에 해야 해요", "몇 달짜리 일이에요"],
+    known: ["큰 그림은 정했어요", "세부 순서가 필요해요", "너무 복잡한 계획은 싫어요", "이미 일정이 일부 있어요"],
+    tension: ["시간이 부족해요", "우선순위가 헷갈려요", "중간에 바뀔 수 있어요", "품질과 속도가 충돌해요"],
+    output: ["오늘 할 일부터", "7일 계획으로", "30일 계획으로", "체크리스트로"]
+  },
+  artifact_creation: {
+    subject: "만들 결과물",
+    goal: ["문서를 만들고 싶어요", "기획안을 만들고 싶어요", "코드 설계를 받고 싶어요", "바로 복사해 쓰고 싶어요"],
+    context: ["초안이 없어요", "메모만 있어요", "기존 초안을 고치고 싶어요", "다른 사람에게 보여줄 거예요"],
+    known: ["너무 긴 글은 싫어요", "형식은 깔끔해야 해요", "전문 용어는 줄여주세요", "이미 넣을 내용이 있어요"],
+    tension: ["읽는 사람이 빨리 이해해야 해요", "빠짐없이 담아야 해요", "짧지만 설득력 있어야 해요", "실행하기 쉽게 써야 해요"],
+    output: ["완성본으로 주세요", "목차 먼저 주세요", "템플릿으로 주세요", "수정 포인트도 주세요"]
+  }
+};
 
-export const FOLLOWUP_TEMPLATES: Record<QuestionType, FollowupQuestion[]> = {
-  research_fact: withIds([
-    { purpose: "goal", question: "이 정보를 어떤 목적으로 확인하려고 하나요? 예: 의사결정, 보고서, 콘텐츠, 투자 판단, 단순 이해." },
-    { purpose: "context", question: "정확히 어떤 범위의 정보를 알고 싶나요? 예: 국가, 산업, 기업, 기간, 특정 사건." },
-    { purpose: "known_or_excluded", question: "이미 알고 있는 내용이나 제외하고 싶은 일반론은 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "이 주제에서 비교하고 싶은 입장, 논쟁 지점, 혹은 의심되는 통념이 있나요?" },
-    { purpose: "output_or_validation", question: "최종 답변은 어떤 형식이면 좋나요? 예: 요약, 표, 타임라인, 출처 중심 분석, 브리핑." }
-  ]),
-  concept_learning: withIds([
-    { purpose: "goal", question: "이 개념을 왜 이해하려고 하나요? 예: 공부, 업무 적용, 사업 기획, 의사결정, 발표 준비." },
-    { purpose: "context", question: "현재 이 주제에 대해 어느 정도 알고 있나요? 초보, 중급, 실무 경험 있음 중 어디에 가까운가요?" },
-    { purpose: "known_or_excluded", question: "이미 알고 있는 설명이나 반복해서 듣고 싶지 않은 일반론은 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "특히 헷갈리는 부분, 오해하고 있을까 걱정되는 부분, 서로 충돌하는 개념은 무엇인가요?" },
-    { purpose: "output_or_validation", question: "답변 후 어떤 결과물이 있으면 좋나요? 예: 쉬운 비유, 구조도, 체크리스트, 학습 로드맵, 퀴즈." }
-  ]),
-  perspective_interpretation: withIds([
-    { purpose: "goal", question: "이 주제를 어떤 용도로 깊게 이해하고 싶나요? 예: 글쓰기, 토론, 전략 판단, 자기 사고 확장." },
-    { purpose: "context", question: "이 주제에 대해 지금 당신이 가진 생각이나 가설은 무엇인가요?" },
-    { purpose: "known_or_excluded", question: "흔한 답변 중에서 듣고 싶지 않은 일반론은 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "이 주제에서 가장 불편하거나 논쟁적인 지점은 무엇이라고 생각하나요?" },
-    { purpose: "output_or_validation", question: "어떤 관점들을 충돌시켜보고 싶나요? 예: 경제학자, 예술가, 철학자, 창업자, 노동자, 미래학자." }
-  ]),
-  idea_generation: withIds([
-    { purpose: "goal", question: "아이디어를 통해 최종적으로 얻고 싶은 것은 무엇인가요? 예: 사업, 콘텐츠, 앱, 프로젝트, 수익화, 실험." },
-    { purpose: "context", question: "어떤 분야, 문제 영역, 사용자군에서 아이디어를 찾고 싶나요?" },
-    { purpose: "known_or_excluded", question: "이미 떠올린 아이디어나 제외하고 싶은 뻔한 아이디어는 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "원하는 새로움의 정도는 어느 쪽인가요? 현실적인 아이디어, 독특한 아이디어, 매우 실험적인 아이디어 중 골라주세요." },
-    { purpose: "output_or_validation", question: "좋은 아이디어를 판단하는 기준은 무엇인가요? 예: 수익성, 실행 가능성, 차별성, 빠른 검증, 장기 확장성." }
-  ]),
-  strategy_business: withIds([
-    { purpose: "goal", question: "이 분석을 통해 얻고 싶은 최종 결과는 무엇인가요? 예: 포지셔닝, 시장 검증, 차별화, 수익 모델, 투자 판단." },
-    { purpose: "context", question: "현재 다루는 제품, 서비스, 사업 아이디어를 한 문장으로 설명해주세요." },
-    { purpose: "known_or_excluded", question: "이미 알고 있거나 제외하고 싶은 일반적인 사업 조언은 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "당신이 현재 믿고 있는 핵심 가정은 무엇인가요? 예: 고객은 이 문제에 돈을 낼 것이다, 경쟁자는 쉽게 따라오지 못할 것이다." },
-    { purpose: "output_or_validation", question: "최종 답변에서 원하는 것은 무엇인가요? 예: 전략 옵션, 리스크 분석, 검증 실험, 포지셔닝 문장, 실행 로드맵." }
-  ]),
-  decision_comparison: withIds([
-    { purpose: "goal", question: "이 결정을 통해 얻고 싶은 가장 중요한 결과는 무엇인가요?" },
-    { purpose: "context", question: "비교하려는 선택지들을 구체적으로 적어주세요." },
-    { purpose: "known_or_excluded", question: "이미 알고 있는 장단점이나 제외하고 싶은 뻔한 비교 기준은 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "이 선택에서 가장 갈등되는 기준은 무엇인가요? 예: 돈 vs 자유, 안정성 vs 성장, 단기 이익 vs 장기 가능성." },
-    { purpose: "output_or_validation", question: "최종 답변은 어떤 방식이면 좋나요? 예: 추천 결론, 조건부 판단, 점수표, 리스크 분석, 30일 실험." }
-  ]),
-  problem_diagnosis: withIds([
-    { purpose: "goal", question: "이 문제가 해결되었다고 판단할 기준은 무엇인가요?" },
-    { purpose: "context", question: "현재 문제가 어떤 현상으로 나타나고 있나요? 숫자, 사례, 반복 패턴이 있다면 적어주세요." },
-    { purpose: "known_or_excluded", question: "지금까지 시도한 해결책과 그 결과는 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "당신이 의심하는 원인은 무엇이고, 반대로 아닐 수도 있는 가능성은 무엇인가요?" },
-    { purpose: "output_or_validation", question: "최종 답변은 어떤 형태이면 좋나요? 예: 원인 분석, 해결 실험, 우선순위, 체크리스트, 실행 계획." }
-  ]),
-  critique_risk: withIds([
-    { purpose: "goal", question: "비판을 통해 최종적으로 얻고 싶은 것은 무엇인가요? 예: 폐기 여부, 개선안, 리스크 파악, 반론에 강한 버전." },
-    { purpose: "context", question: "검토받고 싶은 주장, 아이디어, 계획을 구체적으로 적어주세요." },
-    { purpose: "known_or_excluded", question: "이미 알고 있는 약점이나 듣고 싶지 않은 뻔한 비판은 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "가장 두렵지만 확인해야 하는 실패 가능성이나 숨은 가정은 무엇인가요?" },
-    { purpose: "output_or_validation", question: "최종 답변은 어떤 형식이면 좋나요? 예: 치명도 순위, 반론 목록, 보완 전략, 검증 실험." }
-  ]),
-  execution_roadmap: withIds([
-    { purpose: "goal", question: "이 계획을 통해 최종적으로 달성하려는 결과는 무엇인가요?" },
-    { purpose: "context", question: "현재 상태, 사용 가능한 자원, 기간, 함께 일하는 사람을 적어주세요." },
-    { purpose: "known_or_excluded", question: "이미 정한 일, 시도한 일, 제외하고 싶은 실행 방식은 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "가장 큰 병목, 실패 위험, 단기 실행과 장기 방향이 충돌하는 지점은 무엇인가요?" },
-    { purpose: "output_or_validation", question: "로드맵은 어떤 단위로 보고 싶나요? 예: 7일, 30일, 90일, 체크리스트, 역할별 실행표." }
-  ]),
-  artifact_creation: withIds([
-    { purpose: "goal", question: "만들고 싶은 산출물의 목적은 무엇인가요? 예: PRD, 코드 설계, 발표 자료, 문서, 화면 흐름." },
-    { purpose: "context", question: "이 산출물을 볼 대상, 사용 상황, 톤, 제약 조건을 적어주세요." },
-    { purpose: "known_or_excluded", question: "반드시 포함하거나 제외하고 싶은 내용, 이미 정한 구조는 무엇인가요?" },
-    { purpose: "tension_or_assumption", question: "이 산출물이 평범해지거나 실패할 수 있는 가장 큰 위험은 무엇인가요?" },
-    { purpose: "output_or_validation", question: "최종 산출물은 어떤 형식과 수준이면 좋나요? 예: 목차, 상세 PRD, 구현 순서, 코드 스캐폴드, 평가 기준." }
+const purposeQuestion = (purpose: FollowupPurpose, subject: string) => {
+  const questions: Record<FollowupPurpose, string> = {
+    goal: `이 ${subject}로 무엇을 정하고 싶나요?`,
+    context: `지금 ${subject}는 어느 단계인가요?`,
+    known_or_excluded: "이미 알고 있거나 빼고 싶은 답은 무엇인가요?",
+    tension_or_assumption: "가장 불안하거나 걸리는 부분은 무엇인가요?",
+    output_or_validation: "어떤 형태의 답을 받으면 바로 쓰기 좋나요?"
+  };
+
+  return questions[purpose];
+};
+
+const purposeChoices = (copy: TypeCopy, purpose: FollowupPurpose) => {
+  const choices: Record<FollowupPurpose, string[]> = {
+    goal: copy.goal,
+    context: copy.context,
+    known_or_excluded: copy.known,
+    tension_or_assumption: copy.tension,
+    output_or_validation: copy.output
+  };
+
+  return choices[purpose];
+};
+
+export const FOLLOWUP_TEMPLATES: Record<QuestionType, FollowupQuestion[]> = Object.fromEntries(
+  Object.entries(TYPE_COPY).map(([type, copy]) => [
+    type,
+    FOLLOWUP_PURPOSES.map((purpose) => ({
+      id: purpose,
+      purpose,
+      question: purposeQuestion(purpose, copy.subject),
+      choices: purposeChoices(copy, purpose)
+    }))
   ])
-};
+) as Record<QuestionType, FollowupQuestion[]>;
 
 export function getFollowupQuestions(type: QuestionType): FollowupQuestion[] {
-  return FOLLOWUP_TEMPLATES[type].map((item) => ({ ...item }));
+  return FOLLOWUP_TEMPLATES[type].map((item) => ({
+    ...item,
+    choices: [...item.choices]
+  }));
 }

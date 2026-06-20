@@ -1,3 +1,15 @@
+const followupQuestionJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    id: { type: "string" },
+    purpose: { type: "string" },
+    question: { type: "string" },
+    choices: { type: "array", items: { type: "string" }, minItems: 4, maxItems: 4 }
+  },
+  required: ["id", "purpose", "question", "choices"]
+} as const;
+
 export const questionAnalysisJsonSchema = {
   type: "object",
   additionalProperties: false,
@@ -9,7 +21,27 @@ export const questionAnalysisJsonSchema = {
     deeperIntent: { type: "string" },
     genericAnswerRisk: { type: "string" },
     missingDimensions: { type: "array", items: { type: "string" }, maxItems: 8 },
-    recommendedFollowupFocus: { type: "array", items: { type: "string" }, maxItems: 5 }
+    recommendedFollowupFocus: { type: "array", items: { type: "string" }, maxItems: 5 },
+    recommendedTypeOptions: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          type: { type: "string" },
+          reason: { type: "string" }
+        },
+        required: ["type", "reason"]
+      },
+      minItems: 1,
+      maxItems: 3
+    },
+    followupQuestions: {
+      type: "array",
+      items: followupQuestionJsonSchema,
+      minItems: 5,
+      maxItems: 5
+    }
   },
   required: [
     "primaryType",
@@ -19,7 +51,9 @@ export const questionAnalysisJsonSchema = {
     "deeperIntent",
     "genericAnswerRisk",
     "missingDimensions",
-    "recommendedFollowupFocus"
+    "recommendedFollowupFocus",
+    "recommendedTypeOptions",
+    "followupQuestions"
   ]
 } as const;
 

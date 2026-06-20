@@ -25,4 +25,16 @@ describe("follow-up templates", () => {
     });
     expect(questions[1].question).toContain("제품");
   });
+
+  it("gives four easy answer choices for every follow-up question", () => {
+    for (const type of QUESTION_TYPES) {
+      for (const question of getFollowupQuestions(type)) {
+        expect(question.choices).toHaveLength(4);
+        for (const choice of question.choices) {
+          expect(choice).toMatch(/[가-힣]/);
+          expect(choice.length).toBeLessThanOrEqual(40);
+        }
+      }
+    }
+  });
 });

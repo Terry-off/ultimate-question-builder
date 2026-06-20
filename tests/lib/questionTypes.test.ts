@@ -20,7 +20,11 @@ describe("question types", () => {
   it("has a Korean label for every question type", () => {
     for (const type of QUESTION_TYPES) {
       expect(QUESTION_TYPE_LABELS[type]).toMatch(/[가-힣]/);
+      expect(QUESTION_TYPE_LABELS[type]).not.toContain("/");
+      expect(QUESTION_TYPE_LABELS[type]).not.toContain("형");
     }
+    expect(QUESTION_TYPE_LABELS.strategy_business).toBe("사업 가능성을 보고 싶어요");
+    expect(QUESTION_TYPE_LABELS.decision_comparison).toBe("무엇을 고를지 정하고 싶어요");
   });
 
   it("defines the five follow-up purposes in product order", () => {

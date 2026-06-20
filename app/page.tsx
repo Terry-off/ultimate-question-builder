@@ -57,7 +57,7 @@ export default function Page() {
 
   const updateSelectedType = (type: QuestionType) => {
     setSelectedType(type);
-    setFollowupQuestions(getFollowupQuestions(type));
+    setFollowupQuestions(analysis && type === analysis.primaryType ? analysis.followupQuestions : getFollowupQuestions(type));
     setAnswerDrafts({});
   };
 
@@ -73,7 +73,7 @@ export default function Page() {
       const data = await postJson<QuestionAnalysis>("/api/analyze-question", { rawQuestion, apiKey, model });
       setAnalysis(data);
       setSelectedType(data.primaryType);
-      setFollowupQuestions(getFollowupQuestions(data.primaryType));
+      setFollowupQuestions(data.followupQuestions);
       setStep("analysis");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "분석에 실패했습니다.");
