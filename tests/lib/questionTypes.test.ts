@@ -1,0 +1,35 @@
+import { describe, expect, it } from "vitest";
+import { FOLLOWUP_PURPOSES, QUESTION_TYPE_LABELS, QUESTION_TYPES } from "@/lib/questionTypes";
+
+describe("question types", () => {
+  it("defines exactly ten supported question types", () => {
+    expect(QUESTION_TYPES).toEqual([
+      "research_fact",
+      "concept_learning",
+      "perspective_interpretation",
+      "idea_generation",
+      "strategy_business",
+      "decision_comparison",
+      "problem_diagnosis",
+      "critique_risk",
+      "execution_roadmap",
+      "artifact_creation"
+    ]);
+  });
+
+  it("has a Korean label for every question type", () => {
+    for (const type of QUESTION_TYPES) {
+      expect(QUESTION_TYPE_LABELS[type]).toMatch(/[가-힣]/);
+    }
+  });
+
+  it("defines the five follow-up purposes in product order", () => {
+    expect(FOLLOWUP_PURPOSES).toEqual([
+      "goal",
+      "context",
+      "known_or_excluded",
+      "tension_or_assumption",
+      "output_or_validation"
+    ]);
+  });
+});
