@@ -5,11 +5,41 @@ import { FollowupForm } from "@/components/FollowupForm";
 import type { DirectionSetting, FollowupQuestion } from "@/lib/types";
 
 const questions: FollowupQuestion[] = [
-  { id: "goal", purpose: "goal", question: "무엇을 정하고 싶나요?", choices: ["사업을 계속할지 정하고 싶어요", "고객을 정하고 싶어요", "위험한 점을 알고 싶어요", "첫 실험을 정하고 싶어요"] },
-  { id: "context", purpose: "context", question: "지금은 어느 단계인가요?", choices: ["처음 떠올린 단계예요", "주변 반응을 들었어요", "간단히 만들어봤어요", "돈을 낸 사람이 있어요"] },
-  { id: "known_or_excluded", purpose: "known_or_excluded", question: "빼고 싶은 답은 무엇인가요?", choices: ["뻔한 장단점은 빼주세요", "큰 회사 사례는 빼주세요", "기술 설명은 줄여주세요", "이미 경쟁자는 봤어요"] },
-  { id: "tension_or_assumption", purpose: "tension_or_assumption", question: "가장 불안한 부분은 무엇인가요?", choices: ["고객이 돈을 낼지 모르겠어요", "경쟁 앱과 달라 보일지 걱정돼요", "혼자 만들 수 있을지 모르겠어요", "처음 고객을 찾기 어려워요"] },
-  { id: "output_or_validation", purpose: "output_or_validation", question: "어떤 형태의 답이 필요하나요?", choices: ["바로 할 일 목록", "위험도 높은 순서", "검증 실험 3개", "짧은 결론 먼저"] }
+  {
+    id: "paying_customer",
+    purpose: "돈을 낼 고객",
+    intent: "누가 왜 돈을 낼지 알아야 사업성 답변이 뻔해지지 않아요.",
+    question: "이 앱에 돈을 낼 사람은 누구라고 생각하나요?",
+    choices: ["혼자 일하는 사람", "작은 팀의 리더", "학생이나 취준생", "아직 잘 모르겠어요"]
+  },
+  {
+    id: "current_alternative",
+    purpose: "지금 쓰는 방법",
+    intent: "기존 방법을 알아야 새 앱이 이길 지점을 찾을 수 있어요.",
+    question: "지금 사람들은 이 문제를 어떻게 해결하고 있나요?",
+    choices: ["그냥 ChatGPT에 물어요", "템플릿을 찾아 써요", "동료에게 물어봐요", "아예 해결하지 못해요"]
+  },
+  {
+    id: "willingness_to_pay",
+    purpose: "돈을 낼 이유",
+    intent: "무료 도구와 비교해 돈을 낼 만큼 강한 이유를 확인해야 해요.",
+    question: "사용자가 돈을 낼 만큼 좋아질 부분은 무엇인가요?",
+    choices: ["시간을 크게 줄여줘요", "결과 품질이 달라져요", "업무에 바로 써요", "아직 확실하지 않아요"]
+  },
+  {
+    id: "first_test",
+    purpose: "첫 검증 방법",
+    intent: "실제로 확인할 방법이 있어야 결론이 쓸모 있어져요.",
+    question: "가장 먼저 해볼 수 있는 확인 방법은 무엇인가요?",
+    choices: ["인터뷰 5명", "랜딩페이지", "유료 사전예약", "작은 MVP"]
+  },
+  {
+    id: "answer_shape",
+    purpose: "받고 싶은 답",
+    intent: "답변 형태가 정해져야 최종 질문을 바로 쓸 수 있어요.",
+    question: "최종 답변은 어떤 모양이면 가장 쓸모 있나요?",
+    choices: ["사업 판단표", "첫 실험 계획", "고객 인터뷰 질문", "위험한 점 먼저"]
+  }
 ];
 
 const directionSettings: DirectionSetting[] = [
@@ -18,23 +48,23 @@ const directionSettings: DirectionSetting[] = [
 ];
 
 describe("FollowupForm", () => {
-  it("collects answers and submits all five purposes", async () => {
+  it("collects answers and submits all five custom follow-up questions", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
 
     render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
 
-    await user.click(screen.getByRole("button", { name: "위험한 점을 알고 싶어요" }));
+    await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
     await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.arrayContaining([
-        expect.objectContaining({ purpose: "goal", answer: "위험한 점을 알고 싶어요" }),
-        expect.objectContaining({ purpose: "context", answer: "" })
+        expect.objectContaining({ id: "paying_customer", purpose: "돈을 낼 고객", answer: "작은 팀의 리더" }),
+        expect.objectContaining({ id: "current_alternative", purpose: "지금 쓰는 방법", answer: "" })
       ]),
       directionSettings
     );
-    expect(screen.getByText("정하고 싶은 것과 지금 상황이 비어 있으면 답이 약해질 수 있어요.")).toBeInTheDocument();
+    expect(screen.getByText("답변이 너무 적으면 질문이 약해질 수 있어요. 중요한 항목은 2개 이상 답해주세요.")).toBeInTheDocument();
   });
 
   it("lets users select multiple choices and add their own text", async () => {
@@ -43,18 +73,19 @@ describe("FollowupForm", () => {
 
     render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
 
-    await user.click(screen.getByRole("button", { name: "위험한 점을 알고 싶어요" }));
-    await user.click(screen.getByRole("button", { name: "첫 실험을 정하고 싶어요" }));
-    await user.type(screen.getByLabelText("정하고 싶은 것 직접 입력"), "돈을 낼 고객도 같이 보고 싶어요");
+    await user.click(screen.getByRole("button", { name: "혼자 일하는 사람" }));
+    await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
+    await user.type(screen.getByLabelText("돈을 낼 고객 직접 입력"), "B2B 팀 리더도 같이 보고 싶어요");
     await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
 
-    expect(screen.getByRole("button", { name: "위험한 점을 알고 싶어요" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "첫 실험을 정하고 싶어요" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "혼자 일하는 사람" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "작은 팀의 리더" })).toHaveAttribute("aria-pressed", "true");
     expect(onSubmit).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
-          purpose: "goal",
-          answer: ["위험한 점을 알고 싶어요", "첫 실험을 정하고 싶어요", "돈을 낼 고객도 같이 보고 싶어요"].join("\n")
+          id: "paying_customer",
+          purpose: "돈을 낼 고객",
+          answer: ["혼자 일하는 사람", "작은 팀의 리더", "B2B 팀 리더도 같이 보고 싶어요"].join("\n")
         })
       ]),
       directionSettings

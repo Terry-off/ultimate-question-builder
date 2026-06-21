@@ -9,17 +9,24 @@ const hasText = (value: string | undefined) => Boolean(value && value.trim().len
 
 const includesAny = (text: string, needles: string[]) => needles.some((needle) => text.includes(needle));
 
-const answerByPurpose = (answers: FollowupAnswer[], purpose: FollowupAnswer["purpose"]) =>
-  answers.find((answer) => answer.purpose === purpose)?.answer ?? "";
+const answerText = (answers: FollowupAnswer[]) =>
+  answers.map((answer) => `${answer.purpose} ${answer.question} ${answer.answer}`).join(" ");
+
+const hasAnswerFor = (answers: FollowupAnswer[], keywords: string[]) =>
+  answers.some((answer) => {
+    const searchable = `${answer.purpose} ${answer.question}`;
+    return hasText(answer.answer) && includesAny(searchable, keywords);
+  });
 
 export function calculateQualityScore({ promptText, followupAnswers }: ScoreInput): QualityScore {
   const normalized = promptText.replace(/\s+/g, " ");
+  const followupText = answerText(followupAnswers);
 
-  const context = hasText(answerByPurpose(followupAnswers, "context")) ? 15 : 0;
-  const goal = hasText(answerByPurpose(followupAnswers, "goal")) ? 15 : 0;
-  const knownExclusions = hasText(answerByPurpose(followupAnswers, "known_or_excluded")) ? 10 : 0;
+  const context = hasAnswerFor(followupAnswers, ["상황", "현재", "단계", "대상", "고객", "사용자", "누구", "배경", "쓰는 방법", "대안"]) ? 15 : 0;
+  const goal = hasAnswerFor(followupAnswers, ["목표", "정하", "원하", "쓸 곳", "이유", "성공", "결정", "필요", "돈을 낼 이유"]) ? 15 : 0;
+  const knownExclusions = hasAnswerFor(followupAnswers, ["피하", "빼", "제외", "이미", "싫", "원하지", "아는"]) ? 10 : 0;
   const tension =
-    hasText(answerByPurpose(followupAnswers, "tension_or_assumption")) &&
+    (includesAny(followupText, ["걱정", "불안", "걸리는", "위험", "실패", "반대", "충돌", "돈을 낼지"]) || includesAny(normalized, ["긴장", "충돌", "숨은 가정", "반대 가능성", "리스크"])) &&
     includesAny(normalized, ["긴장", "충돌", "숨은 가정", "반대 가능성", "리스크"])
       ? 20
       : includesAny(normalized, ["긴장", "충돌", "숨은 가정", "반대 가능성", "리스크"])
@@ -28,10 +35,10 @@ export function calculateQualityScore({ promptText, followupAnswers }: ScoreInpu
   const perspectiveCollision = includesAny(normalized, ["관점 충돌", "서로 충돌", "충돌하는 지점"]) ? 15 : 0;
   const selfRefutation = includesAny(normalized, ["반박", "자기반박", "강한 반론"]) ? 10 : 0;
   const outputClarity =
-    hasText(answerByPurpose(followupAnswers, "output_or_validation")) &&
+    hasAnswerFor(followupAnswers, ["답", "모양", "형태", "출력", "결과", "표", "목록", "계획", "실험", "검증"]) &&
     includesAny(normalized, ["출력 형식", "실행", "검증", "실험", "체크리스트", "로드맵"])
       ? 15
-      : hasText(answerByPurpose(followupAnswers, "output_or_validation"))
+      : hasAnswerFor(followupAnswers, ["답", "모양", "형태", "출력", "결과", "표", "목록", "계획", "실험", "검증"])
         ? 8
         : 0;
 

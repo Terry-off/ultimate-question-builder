@@ -7,8 +7,13 @@ export function buildSynthesizeUltimatePrompt(input: {
   directionSettings: DirectionSetting[];
   followupAnswers: FollowupAnswer[];
 }) {
+  const questionById = new Map(input.analysis.followupQuestions.map((question) => [question.id, question]));
   const answers = input.followupAnswers
-    .map((item) => `- ${item.purpose}: ${item.answer.trim() || "정보 없음"}`)
+    .map((item) => {
+      const sourceQuestion = questionById.get(item.id);
+      const intent = sourceQuestion?.intent ? `\n  왜 물었나: ${sourceQuestion.intent}` : "";
+      return `- ${item.purpose}\n  질문: ${item.question}${intent}\n  답변: ${item.answer.trim() || "정보 없음"}`;
+    })
     .join("\n");
   const directionSettings = input.directionSettings
     .map((item) => `- ${QUESTION_TYPE_LABELS[item.type]}: ${item.weight}/100 (${item.reason})`)

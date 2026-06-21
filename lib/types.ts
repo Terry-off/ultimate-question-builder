@@ -1,11 +1,10 @@
 import { z } from "zod";
-import { FOLLOWUP_PURPOSES, QUESTION_TYPES } from "./questionTypes";
+import { QUESTION_TYPES } from "./questionTypes";
 
 export const MAX_INPUT_LENGTH = 3000;
 export const DEFAULT_MODEL = "gpt-5.5";
 
 export const questionTypeSchema = z.enum(QUESTION_TYPES);
-export const followupPurposeSchema = z.enum(FOLLOWUP_PURPOSES);
 
 const rawQuestionSchema = z
   .string()
@@ -26,8 +25,9 @@ export const directionSettingSchema = questionTypeOptionSchema.extend({
 });
 
 export const followupQuestionSchema = z.object({
-  id: followupPurposeSchema,
-  purpose: followupPurposeSchema,
+  id: z.string().trim().min(1).max(48),
+  purpose: z.string().trim().min(1).max(40),
+  intent: z.string().trim().min(1).max(180),
   question: z.string().min(1).max(120),
   choices: z.array(z.string().min(1).max(80)).length(4)
 });
@@ -40,13 +40,14 @@ export const questionAnalysisSchema = z.object({
   deeperIntent: z.string().min(1),
   genericAnswerRisk: z.string().min(1),
   missingDimensions: z.array(z.string()).max(8),
-  recommendedFollowupFocus: z.array(followupPurposeSchema).max(5),
+  recommendedFollowupFocus: z.array(z.string().trim().min(1).max(40)).max(5),
   recommendedTypeOptions: z.array(questionTypeOptionSchema).min(1).max(3),
   followupQuestions: z.array(followupQuestionSchema).length(5)
 });
 
 export const followupAnswerSchema = z.object({
-  purpose: followupPurposeSchema,
+  id: z.string().trim().min(1).max(48),
+  purpose: z.string().trim().min(1).max(40),
   question: z.string().min(1),
   answer: z.string().max(MAX_INPUT_LENGTH, "후속 답변은 3000자 이하로 입력해주세요.")
 });

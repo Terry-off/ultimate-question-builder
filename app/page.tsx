@@ -6,7 +6,7 @@ import { FollowupForm } from "@/components/FollowupForm";
 import { QuestionInput } from "@/components/QuestionInput";
 import { ResultTabs } from "@/components/ResultTabs";
 import { DEFAULT_MODEL, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type QuestionTypeOption, type UltimatePromptResult } from "@/lib/types";
-import type { FollowupPurpose, QuestionType } from "@/lib/questionTypes";
+import type { QuestionType } from "@/lib/questionTypes";
 
 type Step = "question" | "followups" | "result";
 const API_KEY_STORAGE_KEY = "ultimate-question-builder:openai-api-key";
@@ -80,7 +80,7 @@ export default function Page() {
   const [directionSettings, setDirectionSettings] = useState<DirectionSetting[]>([]);
   const [followupQuestions, setFollowupQuestions] = useState<FollowupQuestion[]>([]);
   const [followupAnswers, setFollowupAnswers] = useState<FollowupAnswer[]>([]);
-  const [answerDrafts, setAnswerDrafts] = useState<Partial<Record<FollowupPurpose, string>>>({});
+  const [answerDrafts, setAnswerDrafts] = useState<Partial<Record<string, string>>>({});
   const [result, setResult] = useState<UltimatePromptResult | null>(null);
   const [error, setError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
@@ -131,7 +131,7 @@ export default function Page() {
     }
 
     setFollowupAnswers(answers);
-    setAnswerDrafts(Object.fromEntries(answers.map((item) => [item.purpose, item.answer])) as Partial<Record<FollowupPurpose, string>>);
+    setAnswerDrafts(Object.fromEntries(answers.map((item) => [item.id, item.answer])));
     setError(undefined);
     setLoading(true);
     try {

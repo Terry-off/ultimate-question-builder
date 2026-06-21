@@ -22,17 +22,47 @@ describe("analyzeQuestion service", () => {
       deeperIntent: "시장 가능성 판단",
       genericAnswerRisk: "일반론 위험",
       missingDimensions: ["고객", "경쟁자"],
-      recommendedFollowupFocus: ["goal", "context"],
+      recommendedFollowupFocus: ["돈을 낼 고객", "대신 쓰는 방법", "첫 검증 방법"],
       recommendedTypeOptions: [
         { type: "strategy_business", reason: "사업 가능성을 먼저 봐야 해요." },
         { type: "critique_risk", reason: "실패할 수 있는 이유도 같이 봐야 해요." }
       ],
       followupQuestions: [
-        { id: "goal", purpose: "goal", question: "무엇을 정하고 싶나요?", choices: ["사업을 계속할지 정하기", "고객 정하기", "위험 보기", "첫 실험 정하기"] },
-        { id: "context", purpose: "context", question: "지금 단계는 어디인가요?", choices: ["아이디어만 있어요", "조사 중이에요", "만들고 있어요", "테스트 중이에요"] },
-        { id: "known_or_excluded", purpose: "known_or_excluded", question: "빼고 싶은 답은 무엇인가요?", choices: ["뻔한 말", "너무 긴 설명", "기술 이야기", "해외 사례"] },
-        { id: "tension_or_assumption", purpose: "tension_or_assumption", question: "가장 걱정되는 점은 무엇인가요?", choices: ["고객", "돈", "시간", "경쟁"] },
-        { id: "output_or_validation", purpose: "output_or_validation", question: "답변 형태는 무엇이 좋나요?", choices: ["목록", "표", "순서", "결론"] }
+        {
+          id: "paying_customer",
+          purpose: "돈을 낼 고객",
+          intent: "누가 왜 돈을 낼지 알아야 사업성 답변이 뻔해지지 않아요.",
+          question: "이 앱에 돈을 낼 사람은 누구라고 생각하나요?",
+          choices: ["혼자 일하는 사람", "작은 팀의 리더", "학생이나 취준생", "아직 잘 모르겠어요"]
+        },
+        {
+          id: "current_alternative",
+          purpose: "지금 쓰는 방법",
+          intent: "기존 방법을 알아야 새 앱이 이길 지점을 찾을 수 있어요.",
+          question: "지금 사람들은 이 문제를 어떻게 해결하고 있나요?",
+          choices: ["그냥 ChatGPT에 물어요", "템플릿을 찾아 써요", "동료에게 물어봐요", "아예 해결하지 못해요"]
+        },
+        {
+          id: "willingness_to_pay",
+          purpose: "돈을 낼 이유",
+          intent: "무료 도구와 비교해 돈을 낼 만큼 강한 이유를 확인해야 해요.",
+          question: "사용자가 돈을 낼 만큼 좋아질 부분은 무엇인가요?",
+          choices: ["시간을 크게 줄여줘요", "결과 품질이 달라져요", "업무에 바로 써요", "아직 확실하지 않아요"]
+        },
+        {
+          id: "first_test",
+          purpose: "첫 검증 방법",
+          intent: "실제로 확인할 방법이 있어야 결론이 쓸모 있어져요.",
+          question: "가장 먼저 해볼 수 있는 확인 방법은 무엇인가요?",
+          choices: ["인터뷰 5명", "랜딩페이지", "유료 사전예약", "작은 MVP"]
+        },
+        {
+          id: "answer_shape",
+          purpose: "받고 싶은 답",
+          intent: "답변 형태가 정해져야 최종 질문을 바로 쓸 수 있어요.",
+          question: "최종 답변은 어떤 모양이면 가장 쓸모 있나요?",
+          choices: ["사업 판단표", "첫 실험 계획", "고객 인터뷰 질문", "위험한 점 먼저"]
+        }
       ]
     });
 
@@ -48,8 +78,12 @@ describe("analyzeQuestion service", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.primaryType).toBe("strategy_business");
+      expect(result.data.followupQuestions[0].purpose).toBe("돈을 낼 고객");
+      expect(result.data.followupQuestions[0].intent).toContain("사업성");
       expect(result.data.followupQuestions[0].choices).toHaveLength(4);
     }
+    expect(requestStructuredOutput.mock.calls[0]?.[0].prompt).not.toContain("purpose는 goal, context");
+    expect(requestStructuredOutput.mock.calls[0]?.[0].prompt).toContain("사용자의 질문마다");
   });
 
   it("falls back after requester failure", async () => {

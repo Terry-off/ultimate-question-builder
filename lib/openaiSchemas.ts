@@ -4,10 +4,11 @@ const followupQuestionJsonSchema = {
   properties: {
     id: { type: "string" },
     purpose: { type: "string" },
+    intent: { type: "string" },
     question: { type: "string" },
     choices: { type: "array", items: { type: "string" }, minItems: 4, maxItems: 4 }
   },
-  required: ["id", "purpose", "question", "choices"]
+  required: ["id", "purpose", "intent", "question", "choices"]
 } as const;
 
 export const questionAnalysisJsonSchema = {

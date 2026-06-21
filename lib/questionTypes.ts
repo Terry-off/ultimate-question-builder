@@ -48,11 +48,3 @@ export const FOLLOWUP_PURPOSES = [
 ] as const;
 
 export type FollowupPurpose = (typeof FOLLOWUP_PURPOSES)[number];
-
-export const FOLLOWUP_PURPOSE_LABELS: Record<FollowupPurpose, string> = {
-  goal: "정하고 싶은 것",
-  context: "지금 상황",
-  known_or_excluded: "빼고 싶은 답",
-  tension_or_assumption: "가장 걱정되는 점",
-  output_or_validation: "받고 싶은 답"
-};

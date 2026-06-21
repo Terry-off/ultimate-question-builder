@@ -20,7 +20,7 @@ export function ResultTabs({ result }: { result: UltimatePromptResult }) {
   return (
     <section className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-accent">Step 4</p>
+        <p className="text-sm font-semibold text-accent">Step 3</p>
         <h2 className="mt-2 text-3xl font-semibold text-ink">최종 궁극 질문</h2>
       </div>
       <div className="flex flex-wrap gap-2">
