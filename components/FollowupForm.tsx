@@ -106,13 +106,13 @@ export function FollowupForm({ questions, directionSettings, initialAnswers, loa
             </div>
             <label className="direct-answer">
               <span>직접 입력</span>
-              <textarea
+              <input
+                type="text"
                 aria-label={`${item.purpose} 직접 입력`}
                 value={answers[item.id] ?? ""}
                 onChange={(event) => setAnswers((current) => ({ ...current, [item.id]: event.target.value }))}
-                rows={3}
                 placeholder="직접 입력"
-                className="direct-textarea"
+                className="direct-input"
               />
             </label>
           </section>

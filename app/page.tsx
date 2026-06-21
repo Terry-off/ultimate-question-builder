@@ -6,10 +6,10 @@ import { FollowupForm } from "@/components/FollowupForm";
 import { LoadingLayer } from "@/components/LoadingLayer";
 import { QuestionInput } from "@/components/QuestionInput";
 import { ResultTabs } from "@/components/ResultTabs";
+import { API_KEY_STORAGE_KEY, STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
 import { DEFAULT_MODEL, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type QuestionTypeOption, type UltimatePromptResult } from "@/lib/types";
 import type { QuestionType } from "@/lib/questionTypes";
 
-const API_KEY_STORAGE_KEY = "ultimate-question-builder:openai-api-key";
 const SPLINE_URL = "https://my.spline.design/nexbotrobotcharacterconcept-Gzlk5cCKXuRUpeFXKYo5NQa8/";
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -48,7 +48,8 @@ function createDirectionSettings(analysis: QuestionAnalysis): DirectionSetting[]
 
 function readStoredApiKey() {
   try {
-    return window.localStorage.getItem(API_KEY_STORAGE_KEY) ?? "";
+    const storedApiKey = window.localStorage.getItem(API_KEY_STORAGE_KEY)?.trim() ?? "";
+    return storedApiKey === STORED_API_KEY_SENTINEL ? "" : storedApiKey;
   } catch {
     return "";
   }
@@ -64,6 +65,21 @@ function saveStoredApiKey(value: string) {
   } catch {
     // Some browsers can block localStorage; the in-memory key still works.
   }
+}
+
+async function readServerApiKeyState() {
+  const response = await fetch("/api/api-key");
+  if (!response.ok) return false;
+  const data = await response.json();
+  return Boolean(data.hasApiKey);
+}
+
+async function saveServerApiKey(value: string) {
+  await fetch("/api/api-key", {
+    method: value ? "POST" : "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: value ? JSON.stringify({ apiKey: value }) : undefined
+  });
 }
 
 export default function Page() {
@@ -92,13 +108,25 @@ export default function Page() {
     if (storedApiKey) {
       setApiKey(storedApiKey);
       setError(undefined);
+      void saveServerApiKey(storedApiKey).catch(() => undefined);
+      return;
     }
+
+    void readServerApiKeyState()
+      .then((hasApiKey) => {
+        if (hasApiKey) {
+          setApiKey(STORED_API_KEY_SENTINEL);
+          setError(undefined);
+        }
+      })
+      .catch(() => undefined);
   }, []);
 
   const updateApiKey = (value: string) => {
     const nextApiKey = value.trim();
     setApiKey(nextApiKey);
     saveStoredApiKey(nextApiKey);
+    void saveServerApiKey(nextApiKey).catch(() => undefined);
     if (nextApiKey) {
       setError(undefined);
     }

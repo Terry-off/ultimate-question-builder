@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Page from "@/app/page";
+import { STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
 
 describe("main page flow", () => {
   beforeEach(() => {
@@ -204,6 +205,15 @@ describe("main page flow", () => {
     await user.click(screen.getByRole("button", { name: "적용" }));
 
     expect(localStorage.getItem("ultimate-question-builder:openai-api-key")).toBe("sk-persisted");
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/api-key",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ apiKey: "sk-persisted" })
+        })
+      )
+    );
 
     unmount();
     render(<Page />);
@@ -219,6 +229,50 @@ describe("main page flow", () => {
         body: expect.stringContaining("sk-persisted")
       })
     );
+  });
+
+  it("restores a server-persisted API key when the browser address changes", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/api/api-key")) {
+        return new Response(JSON.stringify({ hasApiKey: true }), { status: 200 });
+      }
+
+      if (url.includes("/api/analyze-question")) {
+        expect(init?.body).toContain(STORED_API_KEY_SENTINEL);
+        return new Response(JSON.stringify({
+          primaryType: "strategy_business",
+          secondaryTypes: [],
+          confidence: 0.86,
+          surfaceQuestion: "사업성 질문",
+          deeperIntent: "시장 가능성을 알고 싶어한다.",
+          genericAnswerRisk: "일반적인 장단점으로 흐를 수 있다.",
+          missingDimensions: [],
+          recommendedFollowupFocus: [],
+          recommendedTypeOptions: [
+            { type: "strategy_business", reason: "사업 가능성을 먼저 봐야 해요." }
+          ],
+          followupQuestions: [
+            { id: "a", purpose: "고객", intent: "고객을 알아야 해요.", question: "누가 쓸 것 같나요?", choices: ["직장인", "학생", "창업자", "모르겠어요"] },
+            { id: "b", purpose: "문제", intent: "문제를 알아야 해요.", question: "무엇이 불편한가요?", choices: ["시간", "품질", "정리", "확신"] },
+            { id: "c", purpose: "대안", intent: "대안을 알아야 해요.", question: "지금은 어떻게 하나요?", choices: ["검색", "질문", "템플릿", "안 해요"] },
+            { id: "d", purpose: "이유", intent: "이유를 알아야 해요.", question: "왜 돈을 낼까요?", choices: ["빠름", "품질", "편함", "모름"] },
+            { id: "e", purpose: "기준", intent: "기준을 알아야 해요.", question: "무엇이 중요한가요?", choices: ["돈", "속도", "차별점", "반응"] },
+            { id: "f", purpose: "모양", intent: "모양을 알아야 해요.", question: "어떤 답이 좋나요?", choices: ["표", "목록", "계획", "결론"] }
+          ]
+        }), { status: 200 });
+      }
+
+      return new Response(JSON.stringify({ error: "not found" }), { status: 404 });
+    }));
+
+    const user = userEvent.setup();
+    render(<Page />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /API 키 설정됨/ })).toBeInTheDocument());
+    await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "주소가 바뀌어도 저장된 키로 바로 분석되는지 확인하고 싶어.");
+    await user.click(screen.getByRole("button", { name: "시작" }));
+
+    await screen.findByText("방향");
   });
 
   it("does not erase a saved API key when the menu is applied without a new key", async () => {

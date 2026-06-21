@@ -61,6 +61,7 @@ describe("FollowupForm", () => {
 
     render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
 
+    expect(screen.getByLabelText("돈을 낼 고객 직접 입력").tagName).toBe("INPUT");
     expect(screen.queryByText("Step 2")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
     await user.click(screen.getByRole("button", { name: "궁극의 질문 생성" }));
