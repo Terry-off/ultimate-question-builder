@@ -17,4 +17,16 @@ describe("ApiKeyMenu", () => {
     expect(onApiKeyChange).toHaveBeenCalledWith("sk-secret");
     expect(screen.queryByText("sk-secret")).not.toBeInTheDocument();
   });
+
+  it("keeps the saved API key when applying with an empty replacement field", async () => {
+    const user = userEvent.setup();
+    const onApiKeyChange = vi.fn();
+
+    render(<ApiKeyMenu apiKey="sk-existing" model="gpt-5.5" onApiKeyChange={onApiKeyChange} onModelChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
+    await user.click(screen.getByRole("button", { name: "적용" }));
+
+    expect(onApiKeyChange).not.toHaveBeenCalled();
+  });
 });

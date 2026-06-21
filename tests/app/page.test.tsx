@@ -125,4 +125,26 @@ describe("main page flow", () => {
       })
     );
   });
+
+  it("does not erase a saved API key when the menu is applied without a new key", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem("ultimate-question-builder:openai-api-key", "sk-persisted");
+    render(<Page />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /API 키 설정됨/ })).toBeInTheDocument());
+    await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
+    await user.click(screen.getByRole("button", { name: "적용" }));
+
+    expect(localStorage.getItem("ultimate-question-builder:openai-api-key")).toBe("sk-persisted");
+    await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "저장된 키가 메뉴를 열어도 유지되는지 확인하고 싶어.");
+    await user.click(screen.getByRole("button", { name: "질문 분석하기" }));
+
+    await screen.findByText("AI가 이해한 방향");
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/analyze-question",
+      expect.objectContaining({
+        body: expect.stringContaining("sk-persisted")
+      })
+    );
+  });
 });

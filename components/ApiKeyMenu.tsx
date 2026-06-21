@@ -14,6 +14,21 @@ export function ApiKeyMenu({ apiKey, model, onApiKeyChange, onModelChange }: Api
   const [open, setOpen] = useState(false);
   const [draftKey, setDraftKey] = useState("");
 
+  const applyKey = () => {
+    const nextKey = draftKey.trim();
+    if (nextKey) {
+      onApiKeyChange(nextKey);
+    }
+    setDraftKey("");
+    setOpen(false);
+  };
+
+  const clearKey = () => {
+    onApiKeyChange("");
+    setDraftKey("");
+    setOpen(false);
+  };
+
   return (
     <div className="relative">
       <button
@@ -36,7 +51,7 @@ export function ApiKeyMenu({ apiKey, model, onApiKeyChange, onModelChange }: Api
             value={draftKey}
             onChange={(event) => setDraftKey(event.target.value)}
             className="mt-2 w-full rounded-md border border-line px-3 py-2"
-            placeholder="sk-..."
+            placeholder={apiKey ? "새 키를 입력하면 바뀝니다" : "sk-..."}
           />
           <label className="mt-4 block text-sm font-medium" htmlFor="model-input">
             모델
@@ -47,18 +62,25 @@ export function ApiKeyMenu({ apiKey, model, onApiKeyChange, onModelChange }: Api
             onChange={(event) => onModelChange(event.target.value)}
             className="mt-2 w-full rounded-md border border-line px-3 py-2"
           />
-          <p className="mt-3 text-xs text-gray-500">키는 이 브라우저에 저장되어 다음 방문에도 유지됩니다.</p>
+          <p className="mt-3 text-xs text-gray-500">
+            {apiKey ? "저장된 키를 사용 중입니다. 바꾸려면 새 키를 입력하세요." : "키는 이 브라우저에 저장되어 다음 방문에도 유지됩니다."}
+          </p>
           <button
             type="button"
-            onClick={() => {
-              onApiKeyChange(draftKey.trim());
-              setDraftKey("");
-              setOpen(false);
-            }}
+            onClick={applyKey}
             className="mt-4 w-full rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white"
           >
             적용
           </button>
+          {apiKey ? (
+            <button
+              type="button"
+              onClick={clearKey}
+              className="mt-2 w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-gray-700"
+            >
+              저장된 키 삭제
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>
