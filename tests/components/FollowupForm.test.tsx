@@ -34,6 +34,13 @@ const questions: FollowupQuestion[] = [
     choices: ["인터뷰 5명", "랜딩페이지", "유료 사전예약", "작은 MVP"]
   },
   {
+    id: "priority",
+    purpose: "가장 중요한 기준",
+    intent: "무엇을 가장 중요하게 볼지 알아야 결론의 우선순위가 선명해져요.",
+    question: "이번 판단에서 가장 중요하게 봐야 할 것은 무엇인가요?",
+    choices: ["돈이 될 가능성", "혼자 만들 수 있음", "고객이 자주 씀", "차별점이 분명함"]
+  },
+  {
     id: "answer_shape",
     purpose: "받고 싶은 답",
     intent: "답변 형태가 정해져야 최종 질문을 바로 쓸 수 있어요.",
@@ -48,7 +55,7 @@ const directionSettings: DirectionSetting[] = [
 ];
 
 describe("FollowupForm", () => {
-  it("collects answers and submits all five custom follow-up questions", async () => {
+  it("collects answers and submits all six custom follow-up questions", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
 
@@ -56,7 +63,7 @@ describe("FollowupForm", () => {
 
     expect(screen.queryByText("Step 2")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
-    await user.click(screen.getByRole("button", { name: "완성" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문 생성" }));
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.arrayContaining([
@@ -77,7 +84,7 @@ describe("FollowupForm", () => {
     await user.click(screen.getByRole("button", { name: "혼자 일하는 사람" }));
     await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
     await user.type(screen.getByLabelText("돈을 낼 고객 직접 입력"), "B2B 팀 리더도 같이 보고 싶어요");
-    await user.click(screen.getByRole("button", { name: "완성" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문 생성" }));
 
     expect(screen.getByRole("button", { name: "혼자 일하는 사람" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "작은 팀의 리더" })).toHaveAttribute("aria-pressed", "true");
@@ -100,7 +107,7 @@ describe("FollowupForm", () => {
     render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText("사업 가능성을 보고 싶어요 반영 정도"), { target: { value: "95" } });
-    await user.click(screen.getByRole("button", { name: "완성" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문 생성" }));
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.any(Array),

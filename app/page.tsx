@@ -215,7 +215,7 @@ export default function Page() {
 
       {result ? (
         <div className="result-backdrop">
-          <section className="result-modal" role="dialog" aria-modal="true" aria-label="최종 질문">
+          <section className="result-modal" role="dialog" aria-modal="true" aria-label="AI에게 물어보는 궁극의 질문입니다.">
             <button type="button" onClick={() => setResult(null)} className="modal-close">
               닫기
             </button>

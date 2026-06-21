@@ -5,9 +5,9 @@ import type { UltimatePromptResult } from "@/lib/types";
 import { PromptCard } from "./PromptCard";
 
 const tabs = [
-  { id: "shortVersion", label: "짧게" },
-  { id: "deepVersion", label: "깊게" },
-  { id: "expertVersion", label: "전문가" }
+  { id: "shortVersion", label: "짧게 물어보기" },
+  { id: "deepVersion", label: "깊게 물어보기" },
+  { id: "expertVersion", label: "전문가로 물어보기" }
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
@@ -19,7 +19,7 @@ export function ResultTabs({ result }: { result: UltimatePromptResult }) {
   return (
     <section className="result-content">
       <div>
-        <h2>최종 질문</h2>
+        <h2>AI에게 물어보는 궁극의 질문입니다.</h2>
       </div>
       <div className="result-tabs">
         {tabs.map((tab) => (

@@ -40,9 +40,9 @@ export const questionAnalysisSchema = z.object({
   deeperIntent: z.string().min(1),
   genericAnswerRisk: z.string().min(1),
   missingDimensions: z.array(z.string()).max(8),
-  recommendedFollowupFocus: z.array(z.string().trim().min(1).max(40)).max(5),
+  recommendedFollowupFocus: z.array(z.string().trim().min(1).max(40)).max(6),
   recommendedTypeOptions: z.array(questionTypeOptionSchema).min(1).max(3),
-  followupQuestions: z.array(followupQuestionSchema).length(5)
+  followupQuestions: z.array(followupQuestionSchema).length(6)
 });
 
 export const followupAnswerSchema = z.object({
@@ -88,7 +88,7 @@ export const synthesizePromptRequestSchema = z.object({
   model: modelSchema,
   analysis: questionAnalysisSchema,
   directionSettings: z.array(directionSettingSchema).min(1).max(3),
-  followupAnswers: z.array(followupAnswerSchema).length(5)
+  followupAnswers: z.array(followupAnswerSchema).length(6)
 });
 
 export type QuestionAnalysis = z.infer<typeof questionAnalysisSchema>;

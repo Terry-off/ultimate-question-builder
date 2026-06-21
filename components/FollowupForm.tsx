@@ -120,7 +120,7 @@ export function FollowupForm({ questions, directionSettings, initialAnswers, loa
       </div>
       {showWarning ? <p className="console-error">답변을 조금 더 골라주세요.</p> : null}
       <button type="button" disabled={loading} onClick={submit} className="primary-action followup-submit">
-        {loading ? "생성 중..." : "완성"}
+        {loading ? "생성 중..." : "궁극의 질문 생성"}
       </button>
     </section>
   );

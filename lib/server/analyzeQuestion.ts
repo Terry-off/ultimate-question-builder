@@ -13,8 +13,8 @@ const fallbackAnalysis: QuestionAnalysis = {
   surfaceQuestion: "사용자의 질문을 더 깊게 해석해야 합니다.",
   deeperIntent: "사용자는 표면적인 답변보다 맥락과 관점이 포함된 답변을 얻고 싶어합니다.",
   genericAnswerRisk: "맥락, 목표, 긴장 지점이 없으면 일반적인 답변으로 흐를 수 있습니다.",
-  missingDimensions: ["답을 어디에 쓸지", "현재 상황", "이미 아는 내용", "가장 헷갈리는 지점", "원하는 답변 모양"],
-  recommendedFollowupFocus: ["답을 쓸 곳", "현재 상황", "이미 아는 내용", "가장 헷갈리는 점", "받고 싶은 답"],
+  missingDimensions: ["답을 어디에 쓸지", "현재 상황", "이미 아는 내용", "가장 헷갈리는 지점", "중요한 기준", "원하는 답변 모양"],
+  recommendedFollowupFocus: ["답을 쓸 곳", "현재 상황", "이미 아는 내용", "가장 헷갈리는 점", "중요한 기준", "받고 싶은 답"],
   recommendedTypeOptions: [
     { type: "perspective_interpretation", reason: "질문을 여러 방향에서 다시 볼 수 있어요." },
     { type: "critique_risk", reason: "놓친 위험한 점을 먼저 확인할 수 있어요." },
@@ -48,6 +48,13 @@ const fallbackAnalysis: QuestionAnalysis = {
       intent: "가장 불편한 지점을 알아야 답변이 깊어집니다.",
       question: "가장 걸리는 부분은 무엇인가요?",
       choices: ["무엇이 맞는지 헷갈려요", "실패할까 걱정돼요", "사람들이 어떻게 볼지 걱정돼요", "어디서 시작할지 모르겠어요"]
+    },
+    {
+      id: "important_standard",
+      purpose: "가장 중요한 기준",
+      intent: "무엇을 가장 중요하게 볼지 알아야 답변의 우선순위가 선명해집니다.",
+      question: "이번 답에서 가장 중요하게 봐야 할 것은 무엇인가요?",
+      choices: ["현실적으로 할 수 있는지", "남들이 납득할 만한지", "새로운 생각을 얻는지", "바로 써먹을 수 있는지"]
     },
     {
       id: "answer_shape",

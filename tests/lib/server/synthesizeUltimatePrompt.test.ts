@@ -48,6 +48,13 @@ const validInput = {
         choices: ["인터뷰 5명", "랜딩페이지", "유료 사전예약", "작은 MVP"]
       },
       {
+        id: "priority",
+        purpose: "가장 중요한 기준",
+        intent: "무엇을 가장 중요하게 볼지 알아야 결론의 우선순위가 선명해져요.",
+        question: "이번 판단에서 가장 중요하게 봐야 할 것은 무엇인가요?",
+        choices: ["돈이 될 가능성", "혼자 만들 수 있음", "고객이 자주 씀", "차별점이 분명함"]
+      },
+      {
         id: "answer_shape",
         purpose: "받고 싶은 답",
         intent: "답변 형태가 정해져야 최종 질문을 바로 쓸 수 있어요.",
@@ -65,6 +72,7 @@ const validInput = {
     { id: "current_alternative", purpose: "지금 쓰는 방법", question: "지금 사람들은 이 문제를 어떻게 해결하고 있나요?", answer: "그냥 ChatGPT에 대충 물어본다." },
     { id: "willingness_to_pay", purpose: "돈을 낼 이유", question: "사용자가 돈을 낼 만큼 좋아질 부분은 무엇인가요?", answer: "결과 품질이 달라지고 업무에 바로 쓸 수 있다." },
     { id: "first_test", purpose: "첫 검증 방법", question: "가장 먼저 해볼 수 있는 확인 방법은 무엇인가요?", answer: "30일 검증 실험으로 받고 싶다." },
+    { id: "priority", purpose: "가장 중요한 기준", question: "이번 판단에서 가장 중요하게 봐야 할 것은 무엇인가요?", answer: "돈이 될 가능성과 차별점이 가장 중요하다." },
     { id: "answer_shape", purpose: "받고 싶은 답", question: "최종 답변은 어떤 모양이면 가장 쓸모 있나요?", answer: "사업 판단표와 첫 실험 계획이 필요하다." }
   ]
 } as const;

@@ -72,6 +72,13 @@ describe("shared schemas", () => {
           choices: ["그냥 ChatGPT에 물어요", "템플릿을 찾아 써요", "동료에게 물어봐요", "아예 해결하지 못해요"]
         },
         {
+          id: "priority",
+          purpose: "가장 중요한 기준",
+          intent: "무엇을 가장 중요하게 볼지 알아야 결론의 우선순위가 선명해져요.",
+          question: "이번 판단에서 가장 중요하게 봐야 할 것은 무엇인가요?",
+          choices: ["돈이 될 가능성", "혼자 만들 수 있음", "고객이 자주 씀", "차별점이 분명함"]
+        },
+        {
           id: "answer_shape",
           purpose: "받고 싶은 답",
           intent: "답변 형태가 정해져야 최종 질문을 바로 쓸 수 있어요.",
@@ -108,6 +115,7 @@ describe("shared schemas", () => {
           { id: "pain", purpose: "불편한 점", intent: "강한 문제인지 알아야 해요.", question: "그 사람이 무엇 때문에 답답해하나요?", choices: ["시간 부족", "품질 불만", "정리 어려움", "확신 부족"] },
           { id: "alternative", purpose: "대신 쓰는 것", intent: "비교 대상을 알아야 해요.", question: "지금은 무엇으로 해결하나요?", choices: ["ChatGPT", "검색", "사람에게 질문", "안 해요"] },
           { id: "risk", purpose: "가장 걱정되는 점", intent: "약한 고리를 알아야 해요.", question: "가장 불안한 점은 무엇인가요?", choices: ["돈을 안 냄", "차별점 부족", "개발 어려움", "홍보 어려움"] },
+          { id: "priority", purpose: "중요한 기준", intent: "무엇을 우선할지 알아야 해요.", question: "이번 판단에서 가장 중요한 것은 무엇인가요?", choices: ["돈 가능성", "만들기 쉬움", "고객 반응", "차별점"] },
           { id: "output", purpose: "답변 모양", intent: "바로 쓸 수 있게 해야 해요.", question: "어떤 답이 필요하나요?", choices: ["판단표", "실험 계획", "질문 목록", "짧은 결론"] }
         ]
       },
@@ -120,6 +128,7 @@ describe("shared schemas", () => {
         { id: "pain", purpose: "불편한 점", question: "그 사람이 무엇 때문에 답답해하나요?", answer: "" },
         { id: "alternative", purpose: "대신 쓰는 것", question: "지금은 무엇으로 해결하나요?", answer: "" },
         { id: "risk", purpose: "가장 걱정되는 점", question: "가장 불안한 점은 무엇인가요?", answer: "" },
+        { id: "priority", purpose: "중요한 기준", question: "이번 판단에서 가장 중요한 것은 무엇인가요?", answer: "" },
         { id: "output", purpose: "답변 모양", question: "어떤 답이 필요하나요?", answer: "" }
       ]
     });

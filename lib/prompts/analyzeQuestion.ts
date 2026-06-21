@@ -19,7 +19,7 @@ research_fact, concept_learning, perspective_interpretation, idea_generation, st
 6. 최종 궁극 질문을 만들기 위해 부족한 정보 missingDimensions를 제시하라.
 7. 사용자의 질문마다 무엇을 더 물어봐야 LLM의 답변 성능이 올라갈지 스스로 판단하고, recommendedFollowupFocus를 쉬운 말로 제시하라.
 8. recommendedTypeOptions를 1~3개만 제시하라. primaryType을 반드시 포함하고, 필요하면 secondaryTypes 중 중요한 것만 더하라.
-9. followupQuestions를 정확히 5개 만들라. 단, 정해진 항목을 채우지 말고 이 사용자 질문에 맞는 맞춤형 후속 질문을 직접 설계하라.
+9. followupQuestions를 정확히 6개 만들라. 단, 정해진 항목을 채우지 말고 이 사용자 질문에 맞는 맞춤형 후속 질문을 직접 설계하라.
 10. 각 followupQuestions 항목에는 id, purpose, intent, question, choices를 넣어라.
 11. id는 영어 소문자와 밑줄을 쓰는 짧은 식별자다. purpose는 화면에 보일 쉬운 한국어 라벨이다.
 12. intent에는 왜 이 답변이 궁극 질문을 더 강하게 만드는지 한 문장으로 적어라.
@@ -30,7 +30,7 @@ research_fact, concept_learning, perspective_interpretation, idea_generation, st
 - 사용자의 의도를 과도하게 확정하지 마라.
 - 평범한 답변을 막기 위해 어떤 정보가 필요한지 판단하라.
 - recommendedTypeOptions는 최대 3개다. 사용자를 많은 선택지로 압도하지 마라.
-- followupQuestions의 5개 질문은 서로 다른 정보를 물어야 한다.
+- followupQuestions의 6개 질문은 서로 다른 정보를 물어야 한다.
 - 모든 후속 질문은 최초 질문의 내용에서 자연스럽게 나온 것이어야 한다.
 - 질문이 사업성이라면 고객, 돈을 낼 이유, 기존 대안, 첫 검증처럼 사업 판단에 필요한 것을 물어라.
 - 질문이 학습이라면 현재 수준, 막힌 지점, 원하는 설명 방식, 써먹을 상황처럼 이해에 필요한 것을 물어라.

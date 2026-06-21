@@ -25,7 +25,10 @@ describe("ResultTabs", () => {
   it("renders final result content without step labels", () => {
     render(<ResultTabs result={result} />);
 
-    expect(screen.getByText("최종 질문")).toBeInTheDocument();
+    expect(screen.getByText("AI에게 물어보는 궁극의 질문입니다.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "짧게 물어보기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "깊게 물어보기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "전문가로 물어보기" })).toBeInTheDocument();
     expect(screen.queryByText("Step 3")).not.toBeInTheDocument();
     expect(screen.queryByText("Step 4")).not.toBeInTheDocument();
   });

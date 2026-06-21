@@ -22,7 +22,7 @@ export const questionAnalysisJsonSchema = {
     deeperIntent: { type: "string" },
     genericAnswerRisk: { type: "string" },
     missingDimensions: { type: "array", items: { type: "string" }, maxItems: 8 },
-    recommendedFollowupFocus: { type: "array", items: { type: "string" }, maxItems: 5 },
+    recommendedFollowupFocus: { type: "array", items: { type: "string" }, maxItems: 6 },
     recommendedTypeOptions: {
       type: "array",
       items: {
@@ -40,8 +40,8 @@ export const questionAnalysisJsonSchema = {
     followupQuestions: {
       type: "array",
       items: followupQuestionJsonSchema,
-      minItems: 5,
-      maxItems: 5
+      minItems: 6,
+      maxItems: 6
     }
   },
   required: [

@@ -52,6 +52,13 @@ describe("main page flow", () => {
               choices: ["인터뷰 5명", "랜딩페이지", "유료 사전예약", "작은 MVP"]
             },
             {
+              id: "priority",
+              purpose: "가장 중요한 기준",
+              intent: "무엇을 가장 중요하게 볼지 알아야 결론의 우선순위가 선명해져요.",
+              question: "이번 판단에서 가장 중요하게 봐야 할 것은 무엇인가요?",
+              choices: ["돈이 될 가능성", "혼자 만들 수 있음", "고객이 자주 씀", "차별점이 분명함"]
+            },
+            {
               id: "answer_shape",
               purpose: "받고 싶은 답",
               intent: "답변 형태가 정해져야 최종 질문을 바로 쓸 수 있어요.",
@@ -110,10 +117,10 @@ describe("main page flow", () => {
     expect(screen.queryByLabelText("AI에게 묻고 싶은 질문")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
     await user.click(screen.getByRole("button", { name: "그냥 ChatGPT에 물어요" }));
-    await user.click(screen.getByRole("button", { name: "완성" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문 생성" }));
 
-    await waitFor(() => expect(screen.getByRole("dialog", { name: "최종 질문" })).toBeInTheDocument());
-    expect(screen.getByText("최종 질문")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "AI에게 물어보는 궁극의 질문입니다." })).toBeInTheDocument());
+    expect(screen.getByText("AI에게 물어보는 궁극의 질문입니다.")).toBeInTheDocument();
     expect(screen.getAllByText("깊은 분석 버전").length).toBeGreaterThan(0);
     expect(fetch).toHaveBeenCalledWith(
       "/api/synthesize-ultimate-prompt",
@@ -166,7 +173,7 @@ describe("main page flow", () => {
     await user.click(screen.getByRole("button", { name: "시작" }));
 
     expect(await screen.findByText("생각 중")).toBeInTheDocument();
-    expect(screen.getByText("질문을 읽고 있어요")).toBeInTheDocument();
+    expect(screen.getByText("질문 속 숨은 목적을 찾고 있어요")).toBeInTheDocument();
     expect(screen.queryByLabelText("AI에게 묻고 싶은 질문")).not.toBeInTheDocument();
 
     resolveAnalyze(new Response(JSON.stringify({

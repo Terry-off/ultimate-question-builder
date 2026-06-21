@@ -44,6 +44,7 @@ export const FOLLOWUP_PURPOSES = [
   "context",
   "known_or_excluded",
   "tension_or_assumption",
+  "priority_or_focus",
   "output_or_validation"
 ] as const;
 

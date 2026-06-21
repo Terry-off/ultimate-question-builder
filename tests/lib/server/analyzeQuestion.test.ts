@@ -57,6 +57,13 @@ describe("analyzeQuestion service", () => {
           choices: ["인터뷰 5명", "랜딩페이지", "유료 사전예약", "작은 MVP"]
         },
         {
+          id: "priority",
+          purpose: "가장 중요한 기준",
+          intent: "무엇을 가장 중요하게 볼지 알아야 결론의 우선순위가 선명해져요.",
+          question: "이번 판단에서 가장 중요하게 봐야 할 것은 무엇인가요?",
+          choices: ["돈이 될 가능성", "혼자 만들 수 있음", "고객이 자주 씀", "차별점이 분명함"]
+        },
+        {
           id: "answer_shape",
           purpose: "받고 싶은 답",
           intent: "답변 형태가 정해져야 최종 질문을 바로 쓸 수 있어요.",

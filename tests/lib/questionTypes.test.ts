@@ -27,12 +27,13 @@ describe("question types", () => {
     expect(QUESTION_TYPE_LABELS.decision_comparison).toBe("무엇을 고를지 정하고 싶어요");
   });
 
-  it("defines the five follow-up purposes in product order", () => {
+  it("defines the six follow-up purposes in product order", () => {
     expect(FOLLOWUP_PURPOSES).toEqual([
       "goal",
       "context",
       "known_or_excluded",
       "tension_or_assumption",
+      "priority_or_focus",
       "output_or_validation"
     ]);
   });
