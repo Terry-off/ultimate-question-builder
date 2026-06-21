@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { ApiKeyMenu } from "@/components/ApiKeyMenu";
 import { FollowupForm } from "@/components/FollowupForm";
+import { LoadingLayer } from "@/components/LoadingLayer";
 import { QuestionInput } from "@/components/QuestionInput";
 import { ResultTabs } from "@/components/ResultTabs";
 import { DEFAULT_MODEL, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type QuestionTypeOption, type UltimatePromptResult } from "@/lib/types";
 import type { QuestionType } from "@/lib/questionTypes";
 
-type Step = "question" | "followups" | "result";
 const API_KEY_STORAGE_KEY = "ultimate-question-builder:openai-api-key";
+const SPLINE_URL = "https://my.spline.design/nexbotrobotcharacterconcept-Gzlk5cCKXuRUpeFXKYo5NQa8/";
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const response = await fetch(url, {
@@ -25,12 +26,6 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 
   return data as T;
 }
-
-const stepLabels: Record<Step, string> = {
-  question: "질문 입력",
-  followups: "후속 답변",
-  result: "결과"
-};
 
 function createDirectionSettings(analysis: QuestionAnalysis): DirectionSetting[] {
   const seen = new Set<QuestionType>();
@@ -74,7 +69,6 @@ function saveStoredApiKey(value: string) {
 export default function Page() {
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(DEFAULT_MODEL);
-  const [step, setStep] = useState<Step>("question");
   const [rawQuestion, setRawQuestion] = useState("");
   const [analysis, setAnalysis] = useState<QuestionAnalysis | null>(null);
   const [directionSettings, setDirectionSettings] = useState<DirectionSetting[]>([]);
@@ -115,7 +109,6 @@ export default function Page() {
       setAnalysis(data);
       setDirectionSettings(createDirectionSettings(data));
       setFollowupQuestions(data.followupQuestions);
-      setStep("followups");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "분석에 실패했습니다.");
     } finally {
@@ -144,7 +137,6 @@ export default function Page() {
         followupAnswers: answers
       });
       setResult(data);
-      setStep("result");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "궁극 질문 생성에 실패했습니다.");
     } finally {
@@ -153,7 +145,6 @@ export default function Page() {
   };
 
   const reset = () => {
-    setStep("question");
     setRawQuestion("");
     setAnalysis(null);
     setDirectionSettings([]);
@@ -165,81 +156,71 @@ export default function Page() {
   };
 
   return (
-    <main className="min-h-screen px-5 py-6 md:px-10">
-      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
-        <div>
-          <p className="text-sm font-semibold text-accent">Ultimate Question Builder</p>
-          <p className="mt-1 text-sm text-gray-600">질문을 설계하는 작업대</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={reset} className="rounded-md border border-line bg-white px-3 py-2 text-sm">
-            처음부터 다시 만들기
-          </button>
+    <main className="experience-shell">
+      <header className="site-topbar">
+        <div className="topbar-actions">
+          {(rawQuestion || analysis || result) ? (
+            <button type="button" onClick={reset} className="ghost-action">
+              새 질문
+            </button>
+          ) : null}
           <ApiKeyMenu apiKey={apiKey} model={model} onApiKeyChange={updateApiKey} onModelChange={setModel} />
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-8 py-8 lg:grid-cols-[220px_1fr]">
-        <aside className="space-y-2">
-          {(Object.keys(stepLabels) as Step[]).map((item, index) => {
-            const activeIndex = (Object.keys(stepLabels) as Step[]).indexOf(step);
-            const isActive = step === item;
-            const isDone = index < activeIndex;
-            return (
-              <div
-                key={item}
-                className={`rounded-md border px-3 py-3 text-sm ${
-                  isActive
-                    ? "border-accent bg-white font-semibold text-accent"
-                    : isDone
-                      ? "border-line bg-white text-ink"
-                      : "border-transparent text-gray-500"
-                }`}
-              >
-                {index + 1}. {stepLabels[item]}
-              </div>
-            );
-          })}
-        </aside>
+      <section className="hero-stage" aria-label="첫 질문 입력">
+        <div className="spline-frame">
+          <iframe
+            title="NEXBOT robot animation"
+            src={SPLINE_URL}
+            frameBorder="0"
+            allow="autoplay; fullscreen; xr-spatial-tracking"
+            className="spline-embed"
+          />
+        </div>
+        <div className="hero-input-layer">
+          <QuestionInput
+            rawQuestion={rawQuestion}
+            error={error}
+            loading={loading}
+            onChange={setRawQuestion}
+            onSubmit={analyze}
+          />
+        </div>
+      </section>
 
-        <section className="rounded-lg border border-line bg-paper/70 p-5 md:p-8">
-          {error ? <p className="mb-5 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
+      {loading ? <LoadingLayer label={analysis ? "조립 중" : "생각 중"} /> : null}
 
-          {step === "question" ? (
-            <QuestionInput
-              rawQuestion={rawQuestion}
-              disabled={!apiKey}
-              error={error}
-              loading={loading}
-              onChange={setRawQuestion}
-              onSubmit={analyze}
-            />
-          ) : null}
+      {analysis ? (
+        <section className="followup-dock" aria-label="맞춤 후속 질문">
+          <FollowupForm
+            questions={followupQuestions}
+            directionSettings={directionSettings}
+            initialAnswers={answerDrafts}
+            loading={loading}
+            onSubmit={synthesize}
+          />
+        </section>
+      ) : null}
 
-          {step === "followups" ? (
-            <FollowupForm
-              questions={followupQuestions}
-              directionSettings={directionSettings}
-              initialAnswers={answerDrafts}
-              loading={loading}
-              onSubmit={synthesize}
-            />
-          ) : null}
-
-          {step === "result" && result ? (
-            <div className="space-y-6">
-              <ResultTabs result={result} />
-              <button type="button" onClick={reset} className="rounded-md border border-line bg-white px-4 py-2 text-sm font-semibold">
-                처음부터 다시 만들기
+      {result ? (
+        <div className="result-backdrop">
+          <section className="result-modal" role="dialog" aria-modal="true" aria-label="최종 질문">
+            <button type="button" onClick={() => setResult(null)} className="modal-close">
+              닫기
+            </button>
+            <ResultTabs result={result} />
+            <div className="modal-actions">
+              <button type="button" onClick={() => setResult(null)} className="ghost-action ghost-action-dark">
+                다시 다듬기
+              </button>
+              <button type="button" onClick={reset} className="primary-action">
+                새 질문 만들기
               </button>
             </div>
-          ) : null}
-
-          {followupAnswers.length > 0 && step === "followups" ? (
-            <p className="mt-4 text-xs text-gray-500">{followupAnswers.length}개의 답변이 임시 보관되어 있습니다.</p>
-          ) : null}
-        </section>
-      </div>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }

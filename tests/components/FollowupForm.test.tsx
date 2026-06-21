@@ -54,8 +54,9 @@ describe("FollowupForm", () => {
 
     render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
 
+    expect(screen.queryByText("Step 2")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
-    await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
+    await user.click(screen.getByRole("button", { name: "완성" }));
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.arrayContaining([
@@ -64,7 +65,7 @@ describe("FollowupForm", () => {
       ]),
       directionSettings
     );
-    expect(screen.getByText("답변이 너무 적으면 질문이 약해질 수 있어요. 중요한 항목은 2개 이상 답해주세요.")).toBeInTheDocument();
+    expect(screen.getByText("답변을 조금 더 골라주세요.")).toBeInTheDocument();
   });
 
   it("lets users select multiple choices and add their own text", async () => {
@@ -76,7 +77,7 @@ describe("FollowupForm", () => {
     await user.click(screen.getByRole("button", { name: "혼자 일하는 사람" }));
     await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
     await user.type(screen.getByLabelText("돈을 낼 고객 직접 입력"), "B2B 팀 리더도 같이 보고 싶어요");
-    await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
+    await user.click(screen.getByRole("button", { name: "완성" }));
 
     expect(screen.getByRole("button", { name: "혼자 일하는 사람" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "작은 팀의 리더" })).toHaveAttribute("aria-pressed", "true");
@@ -99,7 +100,7 @@ describe("FollowupForm", () => {
     render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText("사업 가능성을 보고 싶어요 반영 정도"), { target: { value: "95" } });
-    await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
+    await user.click(screen.getByRole("button", { name: "완성" }));
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.any(Array),

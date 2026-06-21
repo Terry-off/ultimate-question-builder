@@ -38,8 +38,8 @@ export function AnalysisCard({ analysis, selectedType, onTypeChange, onContinue 
   return (
     <section className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-accent">Step 2</p>
-        <h2 className="mt-2 text-3xl font-semibold text-ink">AI가 질문의 방향을 읽었어요</h2>
+        <p className="mono-kicker">QUESTION DIRECTION</p>
+        <h2 className="mt-2 text-3xl font-semibold text-white">AI가 질문의 방향을 읽었어요</h2>
       </div>
       <div className="grid gap-5 md:grid-cols-[1fr_280px]">
         <div className="space-y-5">
@@ -68,7 +68,7 @@ export function AnalysisCard({ analysis, selectedType, onTypeChange, onContinue 
           <TypeSelector value={selectedType} options={typeOptions} onChange={onTypeChange} />
           <p className="text-sm text-gray-600">많이 고를 필요 없어요. 가장 가까운 방향 하나만 고르면 됩니다.</p>
           <button type="button" onClick={onContinue} className="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-white">
-            후속 질문 답하기
+            맞춤 질문 보기
           </button>
         </div>
       </div>

@@ -22,10 +22,11 @@ const result: UltimatePromptResult = {
 };
 
 describe("ResultTabs", () => {
-  it("labels the final result as step 3", () => {
+  it("renders final result content without step labels", () => {
     render(<ResultTabs result={result} />);
 
-    expect(screen.getByText("Step 3")).toBeInTheDocument();
+    expect(screen.getByText("최종 질문")).toBeInTheDocument();
+    expect(screen.queryByText("Step 3")).not.toBeInTheDocument();
     expect(screen.queryByText("Step 4")).not.toBeInTheDocument();
   });
 });

@@ -13,7 +13,7 @@ export function CopyButton({ text }: { text: string }) {
         await navigator.clipboard.writeText(text);
         setCopied(true);
       }}
-      className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-3 py-2 text-sm font-medium"
+      className="copy-action"
     >
       {copied ? <Check size={16} /> : <Copy size={16} />}
       {copied ? "복사됨" : "복사"}

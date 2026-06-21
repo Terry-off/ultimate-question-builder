@@ -90,24 +90,30 @@ describe("main page flow", () => {
     const user = userEvent.setup();
     render(<Page />);
 
+    expect(screen.getByTitle("NEXBOT robot animation")).toBeInTheDocument();
+    expect(screen.queryByText("1. 질문 입력")).not.toBeInTheDocument();
+    expect(screen.queryByText("Step 1")).not.toBeInTheDocument();
+
     await user.click(screen.getByRole("button", { name: /API 키/ }));
     await user.type(screen.getByLabelText("OpenAI API 키"), "sk-test");
     await user.click(screen.getByRole("button", { name: "적용" }));
 
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "AI 질문 생성 앱의 사업성이 있을지 알고 싶어.");
-    await user.click(screen.getByRole("button", { name: "질문 분석하기" }));
+    await user.click(screen.getByRole("button", { name: "시작" }));
 
-    expect(await screen.findByText("AI가 이해한 방향")).toBeInTheDocument();
+    expect(await screen.findByText("방향")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "후속 질문 답하기" })).not.toBeInTheDocument();
     expect(screen.getByLabelText("사업 가능성을 보고 싶어요 반영 정도")).toHaveValue("80");
     fireEvent.change(screen.getByLabelText("사업 가능성을 보고 싶어요 반영 정도"), { target: { value: "95" } });
     expect(screen.getByText("이 앱에 돈을 낼 사람은 누구라고 생각하나요?")).toBeInTheDocument();
     expect(screen.queryByText("이번 답으로 무엇을 정하고 싶나요?")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("AI에게 묻고 싶은 질문")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
     await user.click(screen.getByRole("button", { name: "그냥 ChatGPT에 물어요" }));
-    await user.click(screen.getByRole("button", { name: "궁극 질문 만들기" }));
+    await user.click(screen.getByRole("button", { name: "완성" }));
 
-    await waitFor(() => expect(screen.getByText("질문 품질 점수")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "최종 질문" })).toBeInTheDocument());
+    expect(screen.getByText("최종 질문")).toBeInTheDocument();
     expect(screen.getAllByText("깊은 분석 버전").length).toBeGreaterThan(0);
     expect(fetch).toHaveBeenCalledWith(
       "/api/synthesize-ultimate-prompt",
@@ -127,7 +133,7 @@ describe("main page flow", () => {
     const user = userEvent.setup();
     render(<Page />);
 
-    await user.click(screen.getByRole("button", { name: "질문 분석하기" }));
+    await user.click(screen.getByRole("button", { name: "시작" }));
     expect(screen.getAllByText("OpenAI API 키를 먼저 입력해주세요.").length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole("button", { name: /API 키/ }));
@@ -135,6 +141,49 @@ describe("main page flow", () => {
     await user.click(screen.getByRole("button", { name: "적용" }));
 
     await waitFor(() => expect(screen.queryByText("OpenAI API 키를 먼저 입력해주세요.")).not.toBeInTheDocument());
+  });
+
+  it("shows an interactive loading layer while analyzing the first question", async () => {
+    const user = userEvent.setup();
+    let resolveAnalyze!: (response: Response) => void;
+
+    vi.stubGlobal("fetch", vi.fn((url: string) => {
+      if (url.includes("/api/analyze-question")) {
+        return new Promise<Response>((resolve) => {
+          resolveAnalyze = resolve;
+        });
+      }
+
+      return Promise.resolve(new Response(JSON.stringify({ error: "not found" }), { status: 404 }));
+    }));
+
+    render(<Page />);
+
+    await user.click(screen.getByRole("button", { name: /API 키/ }));
+    await user.type(screen.getByLabelText("OpenAI API 키"), "sk-test");
+    await user.click(screen.getByRole("button", { name: "적용" }));
+    await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "기다리는 동안 로딩이 보여야 해.");
+    await user.click(screen.getByRole("button", { name: "시작" }));
+
+    expect(await screen.findByText("생각 중")).toBeInTheDocument();
+
+    resolveAnalyze(new Response(JSON.stringify({
+      primaryType: "strategy_business",
+      secondaryTypes: [],
+      confidence: 0.86,
+      surfaceQuestion: "대기 상태 질문",
+      deeperIntent: "로딩 중 사용자가 기다리는 경험을 확인한다.",
+      genericAnswerRisk: "일반적인 답으로 흐를 수 있다.",
+      missingDimensions: [],
+      recommendedFollowupFocus: [],
+      recommendedTypeOptions: [
+        { type: "strategy_business", reason: "사업 가능성을 먼저 봐야 해요." }
+      ],
+      followupQuestions: []
+    }), { status: 200 }));
+
+    expect(await screen.findByText("방향")).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("생각 중")).not.toBeInTheDocument());
   });
 
   it("saves the API key and restores it on the next visit", async () => {
@@ -152,9 +201,9 @@ describe("main page flow", () => {
 
     await waitFor(() => expect(screen.getByRole("button", { name: /API 키 설정됨/ })).toBeInTheDocument());
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "저장된 API 키로 바로 분석되는지 확인하고 싶어.");
-    await user.click(screen.getByRole("button", { name: "질문 분석하기" }));
+    await user.click(screen.getByRole("button", { name: "시작" }));
 
-    await screen.findByText("AI가 이해한 방향");
+    await screen.findByText("방향");
     expect(fetch).toHaveBeenCalledWith(
       "/api/analyze-question",
       expect.objectContaining({
@@ -174,9 +223,9 @@ describe("main page flow", () => {
 
     expect(localStorage.getItem("ultimate-question-builder:openai-api-key")).toBe("sk-persisted");
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "저장된 키가 메뉴를 열어도 유지되는지 확인하고 싶어.");
-    await user.click(screen.getByRole("button", { name: "질문 분석하기" }));
+    await user.click(screen.getByRole("button", { name: "시작" }));
 
-    await screen.findByText("AI가 이해한 방향");
+    await screen.findByText("방향");
     expect(fetch).toHaveBeenCalledWith(
       "/api/analyze-question",
       expect.objectContaining({

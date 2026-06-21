@@ -34,14 +34,14 @@ export function ApiKeyMenu({ apiKey, model, onApiKeyChange, onModelChange }: Api
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-3 py-2 text-sm"
+        className="topbar-button"
       >
         <KeyRound size={16} />
         {apiKey ? "API 키 설정됨" : "API 키"}
       </button>
       {open ? (
-        <div className="absolute right-0 z-10 mt-2 w-80 rounded-lg border border-line bg-white p-4 shadow-xl">
-          <label className="block text-sm font-medium" htmlFor="api-key-input">
+        <div className="api-popover">
+          <label className="console-label" htmlFor="api-key-input">
             OpenAI API 키
           </label>
           <input
@@ -50,25 +50,22 @@ export function ApiKeyMenu({ apiKey, model, onApiKeyChange, onModelChange }: Api
             type="password"
             value={draftKey}
             onChange={(event) => setDraftKey(event.target.value)}
-            className="mt-2 w-full rounded-md border border-line px-3 py-2"
+            className="api-input"
             placeholder={apiKey ? "새 키를 입력하면 바뀝니다" : "sk-..."}
           />
-          <label className="mt-4 block text-sm font-medium" htmlFor="model-input">
+          <label className="console-label mt-4" htmlFor="model-input">
             모델
           </label>
           <input
             id="model-input"
             value={model}
             onChange={(event) => onModelChange(event.target.value)}
-            className="mt-2 w-full rounded-md border border-line px-3 py-2"
+            className="api-input"
           />
-          <p className="mt-3 text-xs text-gray-500">
-            {apiKey ? "저장된 키를 사용 중입니다. 바꾸려면 새 키를 입력하세요." : "키는 이 브라우저에 저장되어 다음 방문에도 유지됩니다."}
-          </p>
           <button
             type="button"
             onClick={applyKey}
-            className="mt-4 w-full rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white"
+            className="primary-action w-full"
           >
             적용
           </button>
@@ -76,7 +73,7 @@ export function ApiKeyMenu({ apiKey, model, onApiKeyChange, onModelChange }: Api
             <button
               type="button"
               onClick={clearKey}
-              className="mt-2 w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-gray-700"
+              className="ghost-action ghost-action-dark mt-2 w-full"
             >
               저장된 키 삭제
             </button>
