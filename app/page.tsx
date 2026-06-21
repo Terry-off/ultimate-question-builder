@@ -78,6 +78,14 @@ export default function Page() {
   const [result, setResult] = useState<UltimatePromptResult | null>(null);
   const [error, setError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
+  const isAnalyzingQuestion = loading && !analysis;
+  const isBuildingPrompt = loading && Boolean(analysis);
+  const shellClassName = [
+    "experience-shell",
+    isAnalyzingQuestion ? "is-analyzing" : "",
+    analysis ? "has-followups" : "",
+    isBuildingPrompt ? "is-building" : ""
+  ].filter(Boolean).join(" ");
 
   useEffect(() => {
     const storedApiKey = readStoredApiKey();
@@ -156,7 +164,7 @@ export default function Page() {
   };
 
   return (
-    <main className="experience-shell">
+    <main className={shellClassName}>
       <header className="site-topbar">
         <div className="topbar-actions">
           {(rawQuestion || analysis || result) ? (
@@ -178,18 +186,20 @@ export default function Page() {
             className="spline-embed"
           />
         </div>
-        <div className="hero-input-layer">
-          <QuestionInput
-            rawQuestion={rawQuestion}
-            error={error}
-            loading={loading}
-            onChange={setRawQuestion}
-            onSubmit={analyze}
-          />
-        </div>
+        {!analysis && !loading ? (
+          <div className="hero-input-layer">
+            <QuestionInput
+              rawQuestion={rawQuestion}
+              error={error}
+              loading={loading}
+              onChange={setRawQuestion}
+              onSubmit={analyze}
+            />
+          </div>
+        ) : null}
       </section>
 
-      {loading ? <LoadingLayer label={analysis ? "조립 중" : "생각 중"} /> : null}
+      {loading ? <LoadingLayer mode={analysis ? "synthesize" : "analyze"} question={rawQuestion} /> : null}
 
       {analysis ? (
         <section className="followup-dock" aria-label="맞춤 후속 질문">

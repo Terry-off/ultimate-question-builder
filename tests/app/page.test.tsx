@@ -107,7 +107,7 @@ describe("main page flow", () => {
     fireEvent.change(screen.getByLabelText("사업 가능성을 보고 싶어요 반영 정도"), { target: { value: "95" } });
     expect(screen.getByText("이 앱에 돈을 낼 사람은 누구라고 생각하나요?")).toBeInTheDocument();
     expect(screen.queryByText("이번 답으로 무엇을 정하고 싶나요?")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("AI에게 묻고 싶은 질문")).toBeInTheDocument();
+    expect(screen.queryByLabelText("AI에게 묻고 싶은 질문")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "작은 팀의 리더" }));
     await user.click(screen.getByRole("button", { name: "그냥 ChatGPT에 물어요" }));
     await user.click(screen.getByRole("button", { name: "완성" }));
@@ -166,6 +166,8 @@ describe("main page flow", () => {
     await user.click(screen.getByRole("button", { name: "시작" }));
 
     expect(await screen.findByText("생각 중")).toBeInTheDocument();
+    expect(screen.getByText("질문을 읽고 있어요")).toBeInTheDocument();
+    expect(screen.queryByLabelText("AI에게 묻고 싶은 질문")).not.toBeInTheDocument();
 
     resolveAnalyze(new Response(JSON.stringify({
       primaryType: "strategy_business",
