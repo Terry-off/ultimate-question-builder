@@ -47,7 +47,7 @@ export function ResultModal({ result, loading, error, onBackToFollowups, onReset
   return (
     <div className="result-backdrop">
       <section className="result-modal" role="dialog" aria-modal="true" aria-label="AI에게 물어보는 궁극의 질문입니다.">
-        <button type="button" onClick={onBackToFollowups} className="modal-close">
+        <button type="button" onClick={onReset} className="modal-close">
           닫기
         </button>
         <ResultTabs
@@ -81,9 +81,15 @@ export function ResultModal({ result, loading, error, onBackToFollowups, onReset
             />
           </label>
           {error ? <p role="alert" className="result-refine-error">{error}</p> : null}
-          <button type="button" disabled={!canRefine} onClick={submitRefinement} className="primary-action refine-action">
-            <RefreshCw size={16} />
-            {loading ? "다시 만드는 중..." : "다시 답변 받기"}
+          <button
+            type="button"
+            disabled={!canRefine}
+            aria-busy={loading}
+            onClick={submitRefinement}
+            className={`primary-action refine-action ${loading ? "is-refining" : ""}`}
+          >
+            <RefreshCw className="refine-action-icon" size={16} aria-hidden="true" />
+            <span className="refine-action-label">{loading ? "다시 만드는 중..." : "다시 답변 받기"}</span>
           </button>
         </section>
         <div className="modal-actions">

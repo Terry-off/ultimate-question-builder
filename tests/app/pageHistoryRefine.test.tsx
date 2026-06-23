@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Page from "@/app/page";
-import { PROMPT_HISTORY_STORAGE_KEY } from "@/lib/promptHistory";
+import { PROMPT_HISTORY_STORAGE_KEY, type PromptHistoryEntry } from "@/lib/promptHistory";
 import type { QuestionAnalysis, UltimatePromptResult } from "@/lib/types";
 
 const analysis: QuestionAnalysis = {
@@ -157,5 +157,50 @@ describe("page history and result refinement", () => {
 
     await waitFor(() => expect(screen.getByRole("dialog", { name: "AI에게 물어보는 궁극의 질문입니다." })).toBeInTheDocument());
     expect(screen.getByText("처음 깊은 질문")).toBeInTheDocument();
+  });
+
+  it("returns to the first screen when users close a result opened from history", async () => {
+    setupFetch([]);
+    const user = userEvent.setup();
+    const historyEntry: PromptHistoryEntry = {
+      id: "history-close-target",
+      title: "저장된 질문",
+      rawQuestion: "작은 카페 콘셉트를 어떻게 정하면 좋을지 묻고 싶어.",
+      analysis,
+      directionSettings: [{ type: "strategy_business", reason: "사업 방향을 먼저 봐야 해요.", weight: 100 }],
+      followupAnswers: analysis.followupQuestions.map((question) => ({
+        id: question.id,
+        purpose: question.purpose,
+        question: question.question,
+        answer: "저장된 답변"
+      })),
+      result: createResult("히스토리에서 불러온 깊은 질문"),
+      createdAt: "2026-06-23T00:00:00.000Z",
+      updatedAt: "2026-06-23T00:00:00.000Z"
+    };
+    localStorage.setItem(PROMPT_HISTORY_STORAGE_KEY, JSON.stringify([historyEntry]));
+
+    render(<Page />);
+    await waitFor(() => expect(document.querySelector(".history-count")).toHaveTextContent("1"));
+
+    const historyButton = document.querySelector(".history-menu .topbar-button");
+    if (!(historyButton instanceof HTMLElement)) throw new Error("히스토리 버튼을 찾지 못했습니다.");
+    await user.click(historyButton);
+
+    const historyLoadButton = await waitFor(() => {
+      const button = document.querySelector(".history-load");
+      if (!(button instanceof HTMLElement)) throw new Error("히스토리 불러오기 버튼을 찾지 못했습니다.");
+      return button;
+    });
+    await user.click(historyLoadButton);
+    await waitFor(() => expect(document.querySelector(".result-modal")).toBeInTheDocument());
+
+    const closeButton = document.querySelector(".modal-close");
+    if (!(closeButton instanceof HTMLElement)) throw new Error("결과 닫기 버튼을 찾지 못했습니다.");
+    await user.click(closeButton);
+
+    await waitFor(() => expect(document.querySelector("#raw-question")).toBeInTheDocument());
+    expect(document.querySelector(".result-modal")).toBeNull();
+    expect(document.querySelector(".followup-dock")).toBeNull();
   });
 });

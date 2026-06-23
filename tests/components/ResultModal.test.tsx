@@ -56,4 +56,22 @@ describe("ResultModal", () => {
       feedback: "표현을 더 전문가답게 다듬어줘."
     });
   });
+
+  it("marks the refinement action as busy while regenerating", () => {
+    render(
+      <ResultModal
+        result={result}
+        loading={true}
+        onBackToFollowups={vi.fn()}
+        onReset={vi.fn()}
+        onRefine={vi.fn()}
+      />
+    );
+
+    const action = screen.getByRole("button", { name: "다시 만드는 중..." });
+
+    expect(action).toBeDisabled();
+    expect(action).toHaveClass("is-refining");
+    expect(action).toHaveAttribute("aria-busy", "true");
+  });
 });

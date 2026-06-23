@@ -5,6 +5,7 @@ import { ApiKeyMenu } from "@/components/ApiKeyMenu";
 import { FollowupForm } from "@/components/FollowupForm";
 import { HistoryMenu } from "@/components/HistoryMenu";
 import { LoadingLayer } from "@/components/LoadingLayer";
+import { MatrixClickEffect } from "@/components/MatrixClickEffect";
 import { QuestionInput } from "@/components/QuestionInput";
 import { ResultModal, type ResultRefineRequest } from "@/components/ResultModal";
 import { STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
@@ -30,7 +31,6 @@ export default function Page() {
   const [analysis, setAnalysis] = useState<QuestionAnalysis | null>(null);
   const [directionSettings, setDirectionSettings] = useState<DirectionSetting[]>([]);
   const [followupQuestions, setFollowupQuestions] = useState<FollowupQuestion[]>([]);
-  const [followupAnswers, setFollowupAnswers] = useState<FollowupAnswer[]>([]);
   const [answerDrafts, setAnswerDrafts] = useState<Partial<Record<string, string>>>({});
   const [result, setResult] = useState<UltimatePromptResult | null>(null);
   const [promptHistory, setPromptHistory] = useState<PromptHistoryEntry[]>([]);
@@ -40,6 +40,7 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const isAnalyzingQuestion = loading && !analysis;
   const isBuildingPrompt = loading && Boolean(analysis);
+  const isFirstScreen = !analysis && !loading;
   const shellClassName = [
     "experience-shell",
     isAnalyzingQuestion ? "is-analyzing" : "",
@@ -140,7 +141,6 @@ export default function Page() {
     }
 
     const snapshot = { analysis: requestAnalysis, directionSettings: settings, followupAnswers: answers };
-    setFollowupAnswers(answers);
     setDirectionSettings(settings);
     setAnswerDrafts(Object.fromEntries(answers.map((item) => [item.id, item.answer])));
     setLastPromptSnapshot(snapshot);
@@ -170,7 +170,6 @@ export default function Page() {
     setAnalysis(null);
     setDirectionSettings([]);
     setFollowupQuestions([]);
-    setFollowupAnswers([]);
     setAnswerDrafts({});
     setResult(null);
     setLastPromptSnapshot(null);
@@ -183,7 +182,6 @@ export default function Page() {
     setAnalysis(entry.analysis);
     setDirectionSettings(entry.directionSettings);
     setFollowupQuestions(entry.analysis.followupQuestions);
-    setFollowupAnswers(entry.followupAnswers);
     setAnswerDrafts(Object.fromEntries(entry.followupAnswers.map((item) => [item.id, item.answer])));
     setResult(entry.result);
     setLastPromptSnapshot({
@@ -226,7 +224,8 @@ export default function Page() {
             className={`spline-embed ${splineReady ? "spline-embed-ready" : ""}`}
           />
         </div>
-        {!analysis && !loading ? (
+        {isFirstScreen ? <MatrixClickEffect /> : null}
+        {isFirstScreen ? (
           <div className="hero-input-layer">
             <QuestionInput rawQuestion={rawQuestion} error={error} loading={loading} onChange={setRawQuestion} onSubmit={analyze} />
           </div>
