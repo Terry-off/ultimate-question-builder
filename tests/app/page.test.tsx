@@ -100,7 +100,7 @@ describe("main page flow", () => {
   });
 
   it("randomizes the first-screen Spline hero and applies its theme tokens", async () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.82);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.74);
 
     try {
       render(<Page />);
@@ -119,7 +119,7 @@ describe("main page flow", () => {
   });
 
   it("renders the SpaceX Starship video theme when it is selected", async () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.999);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.84);
 
     try {
       render(<Page />);
@@ -132,6 +132,26 @@ describe("main page flow", () => {
       expect(video.tagName).toBe("VIDEO");
       expect(video.querySelector("source")).toHaveAttribute("src", starshipTheme.source.url);
       expect(main).toHaveAttribute("data-hero-theme", "starship-flight-12");
+      expect(main).toHaveStyle({ "--accent": "#f0f0fa" });
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
+  it("renders the SpaceX Falcon Heavy landing video theme when it is selected", async () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.999);
+
+    try {
+      render(<Page />);
+
+      const video = await screen.findByTitle("Falcon Heavy landing hero animation");
+      const falconHeavyTheme = HERO_THEMES.find((theme) => theme.id === "falcon-heavy-landing");
+      const main = document.querySelector("main");
+
+      if (!falconHeavyTheme) throw new Error("falcon heavy theme missing");
+      expect(video.tagName).toBe("VIDEO");
+      expect(video.querySelector("source")).toHaveAttribute("src", falconHeavyTheme.source.url);
+      expect(main).toHaveAttribute("data-hero-theme", "falcon-heavy-landing");
       expect(main).toHaveStyle({ "--accent": "#f0f0fa" });
     } finally {
       randomSpy.mockRestore();

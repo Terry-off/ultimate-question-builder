@@ -8,7 +8,8 @@ export type HeroThemeId =
   | "blue-marble"
   | "unchained"
   | "paper-boat"
-  | "starship-flight-12";
+  | "starship-flight-12"
+  | "falcon-heavy-landing";
 
 export type HeroThemeSource =
   | {
@@ -304,6 +305,37 @@ export const HERO_THEMES = [
       "--action-text": "#050505",
       "--action-shadow": "rgba(240, 240, 250, 0.22)",
       "--loading-layer-bg": "linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.7)), linear-gradient(115deg, transparent, rgba(240, 240, 250, 0.1), transparent)",
+      "--result-backdrop-bg": "rgba(0, 0, 0, 0.8)"
+    }
+  },
+  {
+    id: "falcon-heavy-landing",
+    name: "Falcon Heavy landing",
+    enabled: true,
+    source: { kind: "video", url: "https://sxcontent9668.azureedge.us/cms-assets/assets/Space_X_Falcon_Heavy_UAS_Landing_DESKTOP_compress_b4568daf9c_5e2026727a.mp4" },
+    cssVariables: {
+      "--chrome": "#f0f0fa",
+      "--muted": "rgba(240, 240, 250, 0.62)",
+      "--panel": "rgba(0, 0, 0, 0.68)",
+      "--panel-strong": "rgba(0, 0, 0, 0.88)",
+      "--line": "rgba(240, 240, 250, 0.2)",
+      "--line-strong": "rgba(240, 240, 250, 0.38)",
+      "--accent": "#f0f0fa",
+      "--accent-strong": "#d8dce4",
+      "--accent-rgb": "240, 240, 250",
+      "--danger": "#ff9ba6",
+      "--shell-bg": "linear-gradient(180deg, transparent 0, #030303 100dvh), #030303",
+      "--hero-stage-bg": "#030303",
+      "--spline-light-overlay": "linear-gradient(90deg, rgba(0, 0, 0, 0.48), transparent 34%, transparent 68%, rgba(0, 0, 0, 0.42)), linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 36%, rgba(0, 0, 0, 0.82))",
+      "--spline-overlay": "linear-gradient(90deg, rgba(0, 0, 0, 0.56), transparent 30%, transparent 68%, rgba(0, 0, 0, 0.5)), linear-gradient(180deg, rgba(0, 0, 0, 0.14), transparent 36%, rgba(0, 0, 0, 0.86))",
+      "--spline-loaded-overlay": "linear-gradient(90deg, rgba(0, 0, 0, 0.48), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.44)), linear-gradient(180deg, rgba(0, 0, 0, 0.08), transparent 36%, rgba(0, 0, 0, 0.78))",
+      "--glass-panel-bg": "linear-gradient(135deg, rgba(240, 240, 250, 0.12), rgba(240, 240, 250, 0.025)), rgba(0, 0, 0, 0.64)",
+      "--question-console-bg": "linear-gradient(135deg, rgba(240, 240, 250, 0.1), rgba(240, 240, 250, 0.015)), rgba(0, 0, 0, 0.54)",
+      "--surface-sheen": "linear-gradient(105deg, rgba(240, 240, 250, 0.1), transparent 38%, rgba(240, 240, 250, 0.08))",
+      "--action-gradient": "linear-gradient(135deg, #f0f0fa, #d8dce4)",
+      "--action-text": "#050505",
+      "--action-shadow": "rgba(240, 240, 250, 0.22)",
+      "--loading-layer-bg": "linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.72)), linear-gradient(115deg, transparent, rgba(240, 240, 250, 0.1), transparent)",
       "--result-backdrop-bg": "rgba(0, 0, 0, 0.8)"
     }
   }

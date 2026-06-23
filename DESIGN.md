@@ -124,7 +124,7 @@ All spacing derives from 4px.
 ### Hero Theme Set
 
 - **Structure**: one hero source, either a Spline URL or a direct video URL, plus one token set in `lib/heroThemes.ts`.
-- **Variants**: NEXBOT, Genku greeting robot, Magic lock, Zero gravity, Blue marble, Unchained, Animated paper boat, and SpaceX Starship flight test video.
+- **Variants**: NEXBOT, Genku greeting robot, Magic lock, Zero gravity, Blue marble, Unchained, Animated paper boat, SpaceX Starship flight test video, and SpaceX Falcon Heavy landing video.
 - **States**: only `enabled: true` themes enter the random first-screen pool.
 - **Accessibility**: theme tokens must preserve readable white text over dark panels.
 - **Maintenance**: remove a broken theme by setting `enabled: false`; add a new theme by appending the same object shape with source URL and tokens.
