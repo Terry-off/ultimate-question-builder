@@ -80,7 +80,7 @@ All spacing derives from 4px.
 - Avoid main document scrolling; inner panels may scroll only when content overflows.
 - Controls must keep stable sizes during hover and loading.
 - On mobile, the follow-up sheet should start near the top bar and give most of the height to question cards.
-- First-screen robot zoom responds to mouse wheel with bounded scale only; it must never create document scroll.
+- First-screen robot stage does not zoom on wheel; wheel input is blocked so the Spline canvas never reveals the page background.
 
 ## 5. Components
 
@@ -128,6 +128,15 @@ All spacing derives from 4px.
 - **States**: read-only, editing, loading, disabled when feedback is empty.
 - **Accessibility**: editable prompt and feedback field must have explicit labels.
 - **Motion**: button and panel feedback use transform, opacity, and glow only.
+
+### API & History Menus
+
+- **Structure**: compact top-right pill buttons with dark glass popovers.
+- **Variants**: API key popover, GPT model selector, local question history list.
+- **Spacing**: `--space-2` to `--space-4`.
+- **States**: saved API key, empty history, active history item, delete hover.
+- **Accessibility**: model selector and API key field keep explicit labels.
+- **Storage**: API key and prompt history stay in the user's local browser storage.
 
 ## 6. Motion & Interaction
 

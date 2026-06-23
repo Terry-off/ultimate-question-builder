@@ -2,6 +2,7 @@
 
 import { KeyRound } from "lucide-react";
 import { useState } from "react";
+import { OPENAI_MODEL_OPTIONS } from "@/lib/openaiModels";
 
 type ApiKeyMenuProps = {
   apiKey: string;
@@ -51,17 +52,24 @@ export function ApiKeyMenu({ apiKey, model, onApiKeyChange, onModelChange }: Api
             value={draftKey}
             onChange={(event) => setDraftKey(event.target.value)}
             className="api-input"
-            placeholder={apiKey ? "새 키를 입력하면 바뀝니다" : "sk-..."}
+            placeholder={apiKey ? "API키는 사용자의 로컬에 독립 저장됩니다." : "sk-..."}
           />
-          <label className="console-label mt-4" htmlFor="model-input">
+          <label className="console-label mt-4" htmlFor="model-select">
             모델
           </label>
-          <input
-            id="model-input"
+          <select
+            id="model-select"
+            aria-label="GPT 모델"
             value={model}
             onChange={(event) => onModelChange(event.target.value)}
             className="api-input"
-          />
+          >
+            {OPENAI_MODEL_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           <button
             type="button"
             onClick={applyKey}

@@ -3,94 +3,28 @@
 import { useEffect, useState, type WheelEvent } from "react";
 import { ApiKeyMenu } from "@/components/ApiKeyMenu";
 import { FollowupForm } from "@/components/FollowupForm";
+import { HistoryMenu } from "@/components/HistoryMenu";
 import { LoadingLayer } from "@/components/LoadingLayer";
 import { QuestionInput } from "@/components/QuestionInput";
 import { ResultModal, type ResultRefineRequest } from "@/components/ResultModal";
-import { API_KEY_STORAGE_KEY, STORED_API_KEY_SENTINEL, isSharedApiKeyPersistenceEnabled } from "@/lib/apiKeyShared";
-import { DEFAULT_MODEL, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type QuestionTypeOption, type UltimatePromptResult } from "@/lib/types";
-import type { QuestionType } from "@/lib/questionTypes";
+import { STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
+import { readServerApiKeyState, readStoredApiKey, saveServerApiKey, saveStoredApiKey } from "@/lib/clientApiKey";
+import { createDirectionSettings } from "@/lib/directionSettings";
+import { postJson } from "@/lib/postJson";
+import { createPromptHistoryEntry, readPromptHistory, removePromptHistoryEntry, upsertPromptHistory, writePromptHistory, type PromptHistoryEntry, type PromptHistorySnapshot } from "@/lib/promptHistory";
+import { DEFAULT_MODEL, questionAnalysisSchema, ultimatePromptResultSchema, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type UltimatePromptResult } from "@/lib/types";
 
-const SPLINE_URL = "https://my.spline.design/nexbotrobotcharacterconcept-Gzlk5cCKXuRUpeFXKYo5NQa8/";
-
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error ?? "요청에 실패했습니다.");
-  }
-
-  return data as T;
-}
-
-function createDirectionSettings(analysis: QuestionAnalysis): DirectionSetting[] {
-  const seen = new Set<QuestionType>();
-  const options: QuestionTypeOption[] = [];
-  const push = (option: QuestionTypeOption) => {
-    if (seen.has(option.type) || options.length >= 3) return;
-    seen.add(option.type);
-    options.push(option);
-  };
-
-  analysis.recommendedTypeOptions.forEach(push);
-  push({ type: analysis.primaryType, reason: "AI가 가장 잘 맞는 방향으로 봤어요." });
-  analysis.secondaryTypes.forEach((type) => push({ type, reason: "이 방향도 함께 생각해볼 만해요." }));
-
-  return options.map((option, index) => ({
-    ...option,
-    weight: option.type === analysis.primaryType ? 80 : index === 1 ? 45 : 30
-  }));
-}
-
-function readStoredApiKey() {
-  try {
-    const storedApiKey = window.localStorage.getItem(API_KEY_STORAGE_KEY)?.trim() ?? "";
-    return storedApiKey === STORED_API_KEY_SENTINEL ? "" : storedApiKey;
-  } catch {
-    return "";
-  }
-}
-
-function saveStoredApiKey(value: string) {
-  try {
-    if (value) {
-      window.localStorage.setItem(API_KEY_STORAGE_KEY, value);
-    } else {
-      window.localStorage.removeItem(API_KEY_STORAGE_KEY);
-    }
-  } catch {
-    // Some browsers can block localStorage; the in-memory key still works.
-  }
-}
-
-async function readServerApiKeyState() {
-  if (!isSharedApiKeyPersistenceEnabled()) return false;
-
-  const response = await fetch("/api/api-key");
-  if (!response.ok) return false;
-  const data = await response.json();
-  return Boolean(data.hasApiKey);
-}
-
-async function saveServerApiKey(value: string) {
-  if (!isSharedApiKeyPersistenceEnabled()) return;
-
-  await fetch("/api/api-key", {
-    method: value ? "POST" : "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: value ? JSON.stringify({ apiKey: value }) : undefined
-  });
-}
+type SynthesizeInput = {
+  readonly answers: FollowupAnswer[];
+  readonly settings: DirectionSetting[];
+  readonly revision?: ResultRefineRequest;
+  readonly sourceAnalysis?: QuestionAnalysis;
+};
 
 export default function Page() {
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(DEFAULT_MODEL);
   const [splineReady, setSplineReady] = useState(false);
-  const [stageZoom, setStageZoom] = useState(1);
   const [rawQuestion, setRawQuestion] = useState("");
   const [analysis, setAnalysis] = useState<QuestionAnalysis | null>(null);
   const [directionSettings, setDirectionSettings] = useState<DirectionSetting[]>([]);
@@ -98,6 +32,9 @@ export default function Page() {
   const [followupAnswers, setFollowupAnswers] = useState<FollowupAnswer[]>([]);
   const [answerDrafts, setAnswerDrafts] = useState<Partial<Record<string, string>>>({});
   const [result, setResult] = useState<UltimatePromptResult | null>(null);
+  const [promptHistory, setPromptHistory] = useState<PromptHistoryEntry[]>([]);
+  const [activeHistoryId, setActiveHistoryId] = useState<string | undefined>();
+  const [lastPromptSnapshot, setLastPromptSnapshot] = useState<PromptHistorySnapshot | null>(null);
   const [error, setError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
   const isAnalyzingQuestion = loading && !analysis;
@@ -115,27 +52,59 @@ export default function Page() {
       setApiKey(storedApiKey);
       setError(undefined);
       void saveServerApiKey(storedApiKey).catch(() => undefined);
-      return;
+    } else {
+      void readServerApiKeyState()
+        .then((hasApiKey) => {
+          if (hasApiKey) {
+            setApiKey(STORED_API_KEY_SENTINEL);
+            setError(undefined);
+          }
+        })
+        .catch(() => undefined);
     }
 
-    void readServerApiKeyState()
-      .then((hasApiKey) => {
-        if (hasApiKey) {
-          setApiKey(STORED_API_KEY_SENTINEL);
-          setError(undefined);
-        }
-      })
-      .catch(() => undefined);
+    try {
+      setPromptHistory(readPromptHistory(window.localStorage));
+    } catch (caught) {
+      if (caught instanceof Error) {
+        setPromptHistory([]);
+      } else {
+        throw caught;
+      }
+    }
   }, []);
+
+  const persistHistory = (entries: readonly PromptHistoryEntry[]) => {
+    const nextEntries = [...entries];
+    setPromptHistory(nextEntries);
+    try {
+      writePromptHistory(window.localStorage, nextEntries);
+    } catch (caught) {
+      if (!(caught instanceof Error)) throw caught;
+    }
+  };
 
   const updateApiKey = (value: string) => {
     const nextApiKey = value.trim();
     setApiKey(nextApiKey);
     saveStoredApiKey(nextApiKey);
     void saveServerApiKey(nextApiKey).catch(() => undefined);
-    if (nextApiKey) {
-      setError(undefined);
-    }
+    if (nextApiKey) setError(undefined);
+  };
+
+  const saveResultHistory = (resultData: UltimatePromptResult, snapshot: PromptHistorySnapshot) => {
+    const previousEntry = activeHistoryId ? promptHistory.find((entry) => entry.id === activeHistoryId) : undefined;
+    const historyEntry = createPromptHistoryEntry({
+      existingId: activeHistoryId,
+      previousEntry,
+      rawQuestion,
+      analysis: snapshot.analysis,
+      directionSettings: snapshot.directionSettings,
+      followupAnswers: snapshot.followupAnswers,
+      result: resultData
+    });
+    setActiveHistoryId(historyEntry.id);
+    persistHistory(upsertPromptHistory(promptHistory, historyEntry));
   };
 
   const analyze = async () => {
@@ -144,10 +113,11 @@ export default function Page() {
       return;
     }
 
+    setActiveHistoryId(undefined);
     setError(undefined);
     setLoading(true);
     try {
-      const data = await postJson<QuestionAnalysis>("/api/analyze-question", { rawQuestion, apiKey, model });
+      const data = questionAnalysisSchema.parse(await postJson("/api/analyze-question", { rawQuestion, apiKey, model }));
       setAnalysis(data);
       setDirectionSettings(createDirectionSettings(data));
       setFollowupQuestions(data.followupQuestions);
@@ -158,28 +128,33 @@ export default function Page() {
     }
   };
 
-  const synthesize = async (answers: FollowupAnswer[], settings: DirectionSetting[], revision?: ResultRefineRequest) => {
-    if (!analysis) return;
+  const synthesize = async ({ answers, settings, revision, sourceAnalysis }: SynthesizeInput) => {
+    const requestAnalysis = sourceAnalysis ?? analysis;
+    if (!requestAnalysis) return;
     if (!apiKey) {
       setError("OpenAI API 키를 먼저 입력해주세요.");
       return;
     }
 
+    const snapshot = { analysis: requestAnalysis, directionSettings: settings, followupAnswers: answers };
     setFollowupAnswers(answers);
+    setDirectionSettings(settings);
     setAnswerDrafts(Object.fromEntries(answers.map((item) => [item.id, item.answer])));
+    setLastPromptSnapshot(snapshot);
     setError(undefined);
     setLoading(true);
     try {
-      const data = await postJson<UltimatePromptResult>("/api/synthesize-ultimate-prompt", {
+      const data = ultimatePromptResultSchema.parse(await postJson("/api/synthesize-ultimate-prompt", {
         rawQuestion,
         apiKey,
         model,
-        analysis,
+        analysis: requestAnalysis,
         directionSettings: settings,
         followupAnswers: answers,
         revision
-      });
+      }));
       setResult(data);
+      saveResultHistory(data, snapshot);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "궁극 질문 생성에 실패했습니다.");
     } finally {
@@ -195,15 +170,35 @@ export default function Page() {
     setFollowupAnswers([]);
     setAnswerDrafts({});
     setResult(null);
+    setLastPromptSnapshot(null);
+    setActiveHistoryId(undefined);
     setError(undefined);
   };
 
-  const adjustRobotZoom = (event: WheelEvent<HTMLElement>) => {
-    if (analysis || loading) return;
+  const selectHistoryEntry = (entry: PromptHistoryEntry) => {
+    setRawQuestion(entry.rawQuestion);
+    setAnalysis(entry.analysis);
+    setDirectionSettings(entry.directionSettings);
+    setFollowupQuestions(entry.analysis.followupQuestions);
+    setFollowupAnswers(entry.followupAnswers);
+    setAnswerDrafts(Object.fromEntries(entry.followupAnswers.map((item) => [item.id, item.answer])));
+    setResult(entry.result);
+    setLastPromptSnapshot({
+      analysis: entry.analysis,
+      directionSettings: entry.directionSettings,
+      followupAnswers: entry.followupAnswers
+    });
+    setActiveHistoryId(entry.id);
+    setError(undefined);
+  };
 
+  const deleteHistoryEntry = (id: string) => {
+    if (activeHistoryId === id) setActiveHistoryId(undefined);
+    persistHistory(removePromptHistoryEntry(promptHistory, id));
+  };
+
+  const blockRobotWheel = (event: WheelEvent<HTMLElement>) => {
     event.preventDefault();
-    const direction = event.deltaY < 0 ? 0.08 : -0.08;
-    setStageZoom((current) => Math.min(1.28, Math.max(0.88, Math.round((current + direction) * 100) / 100)));
   };
 
   return (
@@ -215,15 +210,16 @@ export default function Page() {
               새 질문
             </button>
           ) : null}
+          <HistoryMenu entries={promptHistory} activeId={activeHistoryId} onSelect={selectHistoryEntry} onDelete={deleteHistoryEntry} />
           <ApiKeyMenu apiKey={apiKey} model={model} onApiKeyChange={updateApiKey} onModelChange={setModel} />
         </div>
       </header>
 
       <section className="hero-stage" aria-label="첫 질문 입력">
-        <div className="spline-frame" style={!analysis && !loading ? { transform: `scale(${stageZoom})` } : undefined}>
+        <div className="spline-frame">
           <iframe
             title="NEXBOT robot animation"
-            src={SPLINE_URL}
+            src="https://my.spline.design/nexbotrobotcharacterconcept-Gzlk5cCKXuRUpeFXKYo5NQa8/"
             frameBorder="0"
             allow="autoplay; fullscreen; xr-spatial-tracking"
             onLoad={() => setSplineReady(true)}
@@ -231,16 +227,10 @@ export default function Page() {
             className={`spline-embed ${splineReady ? "spline-embed-ready" : ""}`}
           />
         </div>
-        {!analysis && !loading ? <div className="robot-wheel-layer" aria-hidden="true" onWheel={adjustRobotZoom} /> : null}
+        {!analysis && !loading ? <div className="robot-wheel-layer" aria-hidden="true" onWheel={blockRobotWheel} /> : null}
         {!analysis && !loading ? (
           <div className="hero-input-layer">
-            <QuestionInput
-              rawQuestion={rawQuestion}
-              error={error}
-              loading={loading}
-              onChange={setRawQuestion}
-              onSubmit={analyze}
-            />
+            <QuestionInput rawQuestion={rawQuestion} error={error} loading={loading} onChange={setRawQuestion} onSubmit={analyze} />
           </div>
         ) : null}
       </section>
@@ -254,7 +244,7 @@ export default function Page() {
             directionSettings={directionSettings}
             initialAnswers={answerDrafts}
             loading={loading}
-            onSubmit={synthesize}
+            onSubmit={(answers, settings) => void synthesize({ answers, settings })}
           />
         </section>
       ) : null}
@@ -266,7 +256,13 @@ export default function Page() {
           onBackToFollowups={() => setResult(null)}
           onReset={reset}
           onRefine={(revision) => {
-            void synthesize(followupAnswers, directionSettings, revision);
+            if (!lastPromptSnapshot) return;
+            void synthesize({
+              answers: lastPromptSnapshot.followupAnswers,
+              settings: lastPromptSnapshot.directionSettings,
+              sourceAnalysis: lastPromptSnapshot.analysis,
+              revision
+            });
           }}
         />
       ) : null}

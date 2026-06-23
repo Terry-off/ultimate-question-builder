@@ -190,7 +190,14 @@ describe("main page flow", () => {
       recommendedTypeOptions: [
         { type: "strategy_business", reason: "사업 가능성을 먼저 봐야 해요." }
       ],
-      followupQuestions: []
+      followupQuestions: [
+        { id: "a", purpose: "고객", intent: "고객을 알아야 해요.", question: "누가 쓸 것 같나요?", choices: ["직장인", "학생", "창업자", "모르겠어요"] },
+        { id: "b", purpose: "문제", intent: "문제를 알아야 해요.", question: "무엇이 불편한가요?", choices: ["시간", "품질", "정리", "확신"] },
+        { id: "c", purpose: "대안", intent: "대안을 알아야 해요.", question: "지금은 어떻게 하나요?", choices: ["검색", "질문", "템플릿", "안 해요"] },
+        { id: "d", purpose: "이유", intent: "이유를 알아야 해요.", question: "왜 돈을 낼까요?", choices: ["빠름", "품질", "편함", "모름"] },
+        { id: "e", purpose: "기준", intent: "기준을 알아야 해요.", question: "무엇이 중요한가요?", choices: ["돈", "속도", "차별점", "반응"] },
+        { id: "f", purpose: "모양", intent: "모양을 알아야 해요.", question: "어떤 답이 좋나요?", choices: ["표", "목록", "계획", "결론"] }
+      ]
     }), { status: 200 }));
 
     expect(await screen.findByText("방향")).toBeInTheDocument();

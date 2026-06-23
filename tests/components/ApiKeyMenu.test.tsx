@@ -25,8 +25,21 @@ describe("ApiKeyMenu", () => {
     render(<ApiKeyMenu apiKey="sk-existing" model="gpt-5.5" onApiKeyChange={onApiKeyChange} onModelChange={vi.fn()} />);
 
     await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
+    expect(screen.getByPlaceholderText("API키는 사용자의 로컬에 독립 저장됩니다.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "적용" }));
 
     expect(onApiKeyChange).not.toHaveBeenCalled();
+  });
+
+  it("lets users select a GPT model", async () => {
+    const user = userEvent.setup();
+    const onModelChange = vi.fn();
+
+    render(<ApiKeyMenu apiKey="sk-existing" model="gpt-5.5" onApiKeyChange={vi.fn()} onModelChange={onModelChange} />);
+
+    await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
+    await user.selectOptions(screen.getByLabelText("GPT 모델"), "gpt-5.5-pro");
+
+    expect(onModelChange).toHaveBeenCalledWith("gpt-5.5-pro");
   });
 });
