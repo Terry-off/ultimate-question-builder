@@ -109,4 +109,24 @@ describe("analyzeQuestion service", () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data.primaryType).toBe("perspective_interpretation");
   });
+
+  it("returns OpenAI API errors instead of falling back", async () => {
+    const requestStructuredOutput = vi.fn().mockRejectedValue(Object.assign(new Error("invalid key"), { status: 401 }));
+
+    const result = await analyzeQuestion(
+      {
+        rawQuestion: "I want a better prompt for testing whether my cafe idea is worth building.",
+        apiKey: "sk-test",
+        model: "gpt-5.5"
+      },
+      requestStructuredOutput
+    );
+
+    expect(requestStructuredOutput).toHaveBeenCalledTimes(1);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(401);
+      expect(result.error).toContain("OpenAI API");
+    }
+  });
 });

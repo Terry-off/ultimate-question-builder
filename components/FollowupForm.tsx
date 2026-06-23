@@ -8,11 +8,12 @@ export type FollowupFormProps = {
   questions: FollowupQuestion[];
   directionSettings: DirectionSetting[];
   initialAnswers: Partial<Record<string, string>>;
+  error?: string;
   loading?: boolean;
   onSubmit: (answers: FollowupAnswer[], directionSettings: DirectionSetting[]) => void;
 };
 
-export function FollowupForm({ questions, directionSettings, initialAnswers, loading = false, onSubmit }: FollowupFormProps) {
+export function FollowupForm({ questions, directionSettings, initialAnswers, error, loading = false, onSubmit }: FollowupFormProps) {
   const [answers, setAnswers] = useState<Partial<Record<string, string>>>(initialAnswers);
   const [choiceSelections, setChoiceSelections] = useState<Partial<Record<string, string[]>>>({});
   const [settings, setSettings] = useState<DirectionSetting[]>(directionSettings);
@@ -119,6 +120,7 @@ export function FollowupForm({ questions, directionSettings, initialAnswers, loa
         ))}
       </div>
       {showWarning ? <p className="console-error">답변을 조금 더 골라주세요.</p> : null}
+      {error ? <p className="console-error" role="alert">{error}</p> : null}
       <button type="button" disabled={loading} onClick={submit} className="primary-action followup-submit">
         {loading ? "생성 중..." : "궁극의 질문 생성"}
       </button>

@@ -240,6 +240,7 @@ export default function Page() {
             questions={followupQuestions}
             directionSettings={directionSettings}
             initialAnswers={answerDrafts}
+            error={error}
             loading={loading}
             onSubmit={(answers, settings) => void synthesize({ answers, settings })}
           />

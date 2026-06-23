@@ -110,6 +110,18 @@ describe("synthesizeUltimatePrompt service", () => {
     if (!result.ok) expect(result.error).toContain("궁극 질문 생성에 실패했습니다");
   });
 
+  it("returns OpenAI API errors without retrying synthesis", async () => {
+    const requestStructuredOutput = vi.fn().mockRejectedValue(Object.assign(new Error("model not found"), { status: 404 }));
+    const result = await synthesizeUltimatePrompt(validInput, requestStructuredOutput);
+
+    expect(requestStructuredOutput).toHaveBeenCalledTimes(1);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(404);
+      expect(result.error).toContain("GPT 모델");
+    }
+  });
+
   it("includes the user's edited prompt and feedback when refining a result", async () => {
     const requestStructuredOutput = vi.fn().mockResolvedValue({
       shortVersion: "수정된 짧은 버전",

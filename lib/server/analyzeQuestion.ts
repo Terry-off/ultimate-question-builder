@@ -2,6 +2,7 @@ import { requestStructuredOutput, type RequestStructuredOutputInput } from "../l
 import { questionAnalysisJsonSchema } from "../openaiSchemas";
 import { buildAnalyzeQuestionPrompt } from "../prompts/analyzeQuestion";
 import { analyzeQuestionRequestSchema, questionAnalysisSchema, type AnalyzeQuestionRequest, type QuestionAnalysis } from "../types";
+import { getOpenAIRequestError } from "./openaiError";
 
 type ServiceResult<T> = { ok: true; data: T } | { ok: false; error: string; status: number };
 type StructuredRequester = (input: RequestStructuredOutputInput<any>) => Promise<any>;
@@ -90,7 +91,9 @@ export async function analyzeQuestion(
         schema: questionAnalysisSchema
       });
       return { ok: true, data };
-    } catch {
+    } catch (caught) {
+      const openAIError = getOpenAIRequestError(caught);
+      if (openAIError) return { ok: false, ...openAIError };
       continue;
     }
   }
