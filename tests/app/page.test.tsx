@@ -100,7 +100,7 @@ describe("main page flow", () => {
   });
 
   it("randomizes the first-screen Spline hero and applies its theme tokens", async () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.999);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.82);
 
     try {
       render(<Page />);
@@ -110,9 +110,29 @@ describe("main page flow", () => {
       const main = document.querySelector("main");
 
       if (!paperBoatTheme) throw new Error("paper boat theme missing");
-      expect(iframe).toHaveAttribute("src", paperBoatTheme.splineUrl);
+      expect(iframe).toHaveAttribute("src", paperBoatTheme.source.url);
       expect(main).toHaveAttribute("data-hero-theme", "paper-boat");
       expect(main).toHaveStyle({ "--accent": "#ffdd9a" });
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
+  it("renders the SpaceX Starship video theme when it is selected", async () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.999);
+
+    try {
+      render(<Page />);
+
+      const video = await screen.findByTitle("Starship's twelfth flight test hero animation");
+      const starshipTheme = HERO_THEMES.find((theme) => theme.id === "starship-flight-12");
+      const main = document.querySelector("main");
+
+      if (!starshipTheme) throw new Error("starship theme missing");
+      expect(video.tagName).toBe("VIDEO");
+      expect(video.querySelector("source")).toHaveAttribute("src", starshipTheme.source.url);
+      expect(main).toHaveAttribute("data-hero-theme", "starship-flight-12");
+      expect(main).toHaveStyle({ "--accent": "#f0f0fa" });
     } finally {
       randomSpy.mockRestore();
     }

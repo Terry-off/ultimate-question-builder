@@ -298,6 +298,10 @@ button:disabled {
   opacity: 1;
 }
 
+.hero-video {
+  object-fit: cover;
+}
+
 .hero-input-layer {
   position: relative;
   z-index: 2;

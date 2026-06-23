@@ -7,7 +7,18 @@ export type HeroThemeId =
   | "zero-gravity"
   | "blue-marble"
   | "unchained"
-  | "paper-boat";
+  | "paper-boat"
+  | "starship-flight-12";
+
+export type HeroThemeSource =
+  | {
+      readonly kind: "spline";
+      readonly url: string;
+    }
+  | {
+      readonly kind: "video";
+      readonly url: string;
+    };
 
 export type HeroThemeCssVariables = CSSProperties & {
   readonly "--chrome": string;
@@ -39,19 +50,20 @@ export type HeroTheme = {
   readonly id: HeroThemeId;
   readonly name: string;
   readonly enabled: boolean;
-  readonly splineUrl: string;
+  readonly source: HeroThemeSource;
   readonly cssVariables: HeroThemeCssVariables;
 };
 
 const darkPanel = "rgba(7, 10, 14, 0.78)";
 const strongPanel = "rgba(7, 10, 14, 0.92)";
 
+// allow: SIZE_OK - append-only hero theme token registry.
 export const HERO_THEMES = [
   {
     id: "nexbot",
     name: "NEXBOT",
     enabled: true,
-    splineUrl: "https://my.spline.design/nexbotrobotcharacterconcept-Gzlk5cCKXuRUpeFXKYo5NQa8/",
+    source: { kind: "spline", url: "https://my.spline.design/nexbotrobotcharacterconcept-Gzlk5cCKXuRUpeFXKYo5NQa8/" },
     cssVariables: {
       "--chrome": "#f8fbff",
       "--muted": "rgba(248, 251, 255, 0.58)",
@@ -82,7 +94,7 @@ export const HERO_THEMES = [
     id: "genku-greeting",
     name: "Genku greeting robot",
     enabled: true,
-    splineUrl: "https://my.spline.design/genkubgreetingrobot-6KnCXjHnweub6Tg0ii7CrrWv/",
+    source: { kind: "spline", url: "https://my.spline.design/genkubgreetingrobot-6KnCXjHnweub6Tg0ii7CrrWv/" },
     cssVariables: {
       "--chrome": "#f5fffb",
       "--muted": "rgba(245, 255, 251, 0.62)",
@@ -113,7 +125,7 @@ export const HERO_THEMES = [
     id: "magic-lock",
     name: "Magic lock",
     enabled: true,
-    splineUrl: "https://my.spline.design/magiclock-9BEvo8IAdiqkmV2oCzlWjcee/",
+    source: { kind: "spline", url: "https://my.spline.design/magiclock-9BEvo8IAdiqkmV2oCzlWjcee/" },
     cssVariables: {
       "--chrome": "#fffaf2",
       "--muted": "rgba(255, 250, 242, 0.62)",
@@ -144,7 +156,7 @@ export const HERO_THEMES = [
     id: "zero-gravity",
     name: "Zero gravity physics",
     enabled: true,
-    splineUrl: "https://my.spline.design/zerogravityphysicslandingpage-91iSUa2r2R85qk8D74elf5Pi/",
+    source: { kind: "spline", url: "https://my.spline.design/zerogravityphysicslandingpage-91iSUa2r2R85qk8D74elf5Pi/" },
     cssVariables: {
       "--chrome": "#f6fbff",
       "--muted": "rgba(246, 251, 255, 0.62)",
@@ -175,7 +187,7 @@ export const HERO_THEMES = [
     id: "blue-marble",
     name: "The blue marble",
     enabled: true,
-    splineUrl: "https://my.spline.design/thebluemarble-2KNR2Z7eB73PaHPmd4dC9MCC/",
+    source: { kind: "spline", url: "https://my.spline.design/thebluemarble-2KNR2Z7eB73PaHPmd4dC9MCC/" },
     cssVariables: {
       "--chrome": "#f5fbff",
       "--muted": "rgba(245, 251, 255, 0.62)",
@@ -206,7 +218,7 @@ export const HERO_THEMES = [
     id: "unchained",
     name: "Unchained",
     enabled: true,
-    splineUrl: "https://my.spline.design/unchained-5MOmHZnGW3yfhPJzg53oK5WS/",
+    source: { kind: "spline", url: "https://my.spline.design/unchained-5MOmHZnGW3yfhPJzg53oK5WS/" },
     cssVariables: {
       "--chrome": "#fff8f8",
       "--muted": "rgba(255, 248, 248, 0.62)",
@@ -237,7 +249,7 @@ export const HERO_THEMES = [
     id: "paper-boat",
     name: "Animated paper boat",
     enabled: true,
-    splineUrl: "https://my.spline.design/animatedpaperboat-ppXNonvnqrOn60Qj3EEaFbmR/",
+    source: { kind: "spline", url: "https://my.spline.design/animatedpaperboat-ppXNonvnqrOn60Qj3EEaFbmR/" },
     cssVariables: {
       "--chrome": "#fffdf6",
       "--muted": "rgba(255, 253, 246, 0.64)",
@@ -262,6 +274,37 @@ export const HERO_THEMES = [
       "--action-shadow": "rgba(67, 215, 213, 0.28)",
       "--loading-layer-bg": "linear-gradient(180deg, rgba(7, 16, 21, 0.08), rgba(7, 16, 21, 0.6)), linear-gradient(115deg, transparent, rgba(255, 221, 154, 0.13), transparent)",
       "--result-backdrop-bg": "rgba(4, 10, 13, 0.76)"
+    }
+  },
+  {
+    id: "starship-flight-12",
+    name: "Starship's twelfth flight test",
+    enabled: true,
+    source: { kind: "video", url: "https://sxcontent9668.azureedge.us/cms-assets/assets/20260522_Starship_Flight12_web1920_v2_71d68b5ee9.mp4" },
+    cssVariables: {
+      "--chrome": "#f0f0fa",
+      "--muted": "rgba(240, 240, 250, 0.62)",
+      "--panel": "rgba(0, 0, 0, 0.68)",
+      "--panel-strong": "rgba(0, 0, 0, 0.88)",
+      "--line": "rgba(240, 240, 250, 0.2)",
+      "--line-strong": "rgba(240, 240, 250, 0.38)",
+      "--accent": "#f0f0fa",
+      "--accent-strong": "#cfd3da",
+      "--accent-rgb": "240, 240, 250",
+      "--danger": "#ff9ba6",
+      "--shell-bg": "linear-gradient(180deg, transparent 0, #030303 100dvh), #030303",
+      "--hero-stage-bg": "#030303",
+      "--spline-light-overlay": "linear-gradient(90deg, rgba(0, 0, 0, 0.42), transparent 35%, transparent 68%, rgba(0, 0, 0, 0.36)), linear-gradient(180deg, rgba(0, 0, 0, 0.34), transparent 36%, rgba(0, 0, 0, 0.8))",
+      "--spline-overlay": "linear-gradient(90deg, rgba(0, 0, 0, 0.54), transparent 31%, transparent 68%, rgba(0, 0, 0, 0.5)), linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 38%, rgba(0, 0, 0, 0.86))",
+      "--spline-loaded-overlay": "linear-gradient(90deg, rgba(0, 0, 0, 0.46), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.42)), linear-gradient(180deg, rgba(0, 0, 0, 0.1), transparent 38%, rgba(0, 0, 0, 0.78))",
+      "--glass-panel-bg": "linear-gradient(135deg, rgba(240, 240, 250, 0.12), rgba(240, 240, 250, 0.025)), rgba(0, 0, 0, 0.64)",
+      "--question-console-bg": "linear-gradient(135deg, rgba(240, 240, 250, 0.1), rgba(240, 240, 250, 0.015)), rgba(0, 0, 0, 0.54)",
+      "--surface-sheen": "linear-gradient(105deg, rgba(240, 240, 250, 0.1), transparent 38%, rgba(240, 240, 250, 0.08))",
+      "--action-gradient": "linear-gradient(135deg, #f0f0fa, #cfd3da)",
+      "--action-text": "#050505",
+      "--action-shadow": "rgba(240, 240, 250, 0.22)",
+      "--loading-layer-bg": "linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.7)), linear-gradient(115deg, transparent, rgba(240, 240, 250, 0.1), transparent)",
+      "--result-backdrop-bg": "rgba(0, 0, 0, 0.8)"
     }
   }
 ] as const satisfies readonly HeroTheme[];
