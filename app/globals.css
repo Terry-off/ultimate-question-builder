@@ -124,6 +124,48 @@ button:disabled {
   flex: 0 0 auto;
 }
 
+.api-status-button {
+  position: relative;
+  max-width: min(52vw, 280px);
+  overflow: hidden;
+}
+
+.api-status-button svg,
+.api-status-button span {
+  position: relative;
+  z-index: 1;
+}
+
+.api-status-button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.api-status-button-active {
+  border-color: rgba(114, 247, 255, 0.72);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.22), transparent 34%),
+    linear-gradient(135deg, rgba(24, 220, 233, 0.34), rgba(7, 10, 14, 0.76) 48%, rgba(114, 247, 255, 0.22));
+  color: #f3feff;
+  box-shadow:
+    0 0 0 1px rgba(114, 247, 255, 0.16) inset,
+    0 16px 44px rgba(24, 220, 233, 0.24),
+    0 0 28px rgba(114, 247, 255, 0.22);
+  animation: api-status-breathe 2.7s ease-in-out infinite;
+}
+
+.api-status-button-active::after {
+  position: absolute;
+  inset: -48% -32%;
+  content: "";
+  opacity: 0.48;
+  background: linear-gradient(112deg, transparent 36%, rgba(255, 255, 255, 0.3) 48%, transparent 60%);
+  transform: translateX(-72%) rotate(7deg);
+  animation: api-status-sheen 2.7s ease-in-out infinite;
+}
+
 .topbar-button:hover,
 .ghost-action:hover,
 .copy-action:hover,
@@ -1704,6 +1746,36 @@ select.api-input option {
   }
 }
 
+@keyframes api-status-breathe {
+  0%,
+  100% {
+    filter: saturate(1) brightness(1);
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    filter: saturate(1.28) brightness(1.18);
+    transform: translateY(-1px) scale(1.015);
+  }
+}
+
+@keyframes api-status-sheen {
+  0%,
+  38% {
+    opacity: 0;
+    transform: translateX(-72%) rotate(7deg);
+  }
+
+  58% {
+    opacity: 0.62;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(72%) rotate(7deg);
+  }
+}
+
 @keyframes refine-orbit {
   from {
     transform: rotate(0deg);
@@ -1906,6 +1978,10 @@ select.api-input option {
     min-height: 38px;
     padding-inline: 11px;
     font-size: 12px;
+  }
+
+  .api-status-button {
+    max-width: min(54vw, 230px);
   }
 
   .question-console {

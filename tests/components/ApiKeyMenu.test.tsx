@@ -19,7 +19,7 @@ describe("ApiKeyMenu", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: /API 키/ }));
+    await user.click(screen.getByRole("button", { name: "API등록" }));
     await user.type(screen.getByLabelText("OpenAI API 키"), "sk-secret");
     await user.click(screen.getByRole("button", { name: "적용" }));
 
@@ -42,7 +42,7 @@ describe("ApiKeyMenu", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
+    await user.click(screen.getByRole("button", { name: "GPT-5.5 작동중" }));
     expect(screen.getByPlaceholderText("API키는 사용자의 로컬에 독립 저장됩니다.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "적용" }));
 
@@ -64,7 +64,7 @@ describe("ApiKeyMenu", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
+    await user.click(screen.getByRole("button", { name: "GPT-5.5 작동중" }));
     await user.selectOptions(screen.getByLabelText("GPT 모델"), "gpt-5.5-pro");
 
     expect(onModelChange).toHaveBeenCalledWith("gpt-5.5-pro");
@@ -85,7 +85,7 @@ describe("ApiKeyMenu", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: /API 키/ }));
+    await user.click(screen.getByRole("button", { name: "API등록" }));
     await user.click(screen.getByRole("button", { name: "CLAUDE" }));
 
     expect(onProviderChange).toHaveBeenCalledWith("anthropic");
@@ -108,7 +108,7 @@ describe("ApiKeyMenu", () => {
       </>
     );
 
-    await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
+    await user.click(screen.getByRole("button", { name: "GPT-5.5 작동중" }));
     expect(screen.getByLabelText("GPT 모델")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "바깥 영역" }));

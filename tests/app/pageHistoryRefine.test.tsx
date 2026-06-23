@@ -72,7 +72,7 @@ const createFirstResult = async () => {
   const user = userEvent.setup();
   render(<Page />);
 
-  await user.click(screen.getByRole("button", { name: /API 키/ }));
+  await user.click(screen.getByRole("button", { name: "API등록" }));
   await user.type(screen.getByLabelText("OpenAI API 키"), "sk-test");
   await user.click(screen.getByRole("button", { name: "적용" }));
   await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "작은 카페 콘셉트를 어떻게 정하면 좋을지 알고 싶어.");

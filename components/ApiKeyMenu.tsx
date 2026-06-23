@@ -7,6 +7,7 @@ import {
   MODEL_PROVIDER_LABELS,
   PROVIDER_API_KEY_LABELS,
   PROVIDER_API_KEY_PLACEHOLDERS,
+  getModelLabel,
   getModelOptions,
   type ModelProviderId
 } from "@/lib/modelProviders";
@@ -27,6 +28,8 @@ export function ApiKeyMenu({ apiKey, provider, model, onProviderChange, onApiKey
   const [open, setOpen] = useState(false);
   const [draftKey, setDraftKey] = useState("");
   useOutsideDismiss(menuRef, open, () => setOpen(false));
+  const isConfigured = Boolean(apiKey);
+  const statusLabel = isConfigured ? `${getModelLabel(provider, model)} 작동중` : "API등록";
 
   const applyKey = () => {
     const nextKey = draftKey.trim();
@@ -53,10 +56,10 @@ export function ApiKeyMenu({ apiKey, provider, model, onProviderChange, onApiKey
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="topbar-button"
+        className={`topbar-button api-status-button ${isConfigured ? "api-status-button-active" : ""}`}
       >
         <KeyRound size={16} />
-        {apiKey ? "API 키 설정됨" : "API 키"}
+        <span>{statusLabel}</span>
       </button>
       {open ? (
         <>
