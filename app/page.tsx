@@ -10,6 +10,7 @@ import { ResultModal, type ResultRefineRequest } from "@/components/ResultModal"
 import { STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
 import { readServerApiKeyState, readStoredApiKey, saveServerApiKey, saveStoredApiKey } from "@/lib/clientApiKey";
 import { createDirectionSettings } from "@/lib/directionSettings";
+import { readStoredModel, saveStoredModel } from "@/lib/modelPreference";
 import { postJson } from "@/lib/postJson";
 import { createPromptHistoryEntry, readPromptHistory, removePromptHistoryEntry, upsertPromptHistory, writePromptHistory, type PromptHistoryEntry, type PromptHistorySnapshot } from "@/lib/promptHistory";
 import { DEFAULT_MODEL, questionAnalysisSchema, ultimatePromptResultSchema, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type UltimatePromptResult } from "@/lib/types";
@@ -47,6 +48,8 @@ export default function Page() {
   ].filter(Boolean).join(" ");
 
   useEffect(() => {
+    setModel(readStoredModel());
+
     const storedApiKey = readStoredApiKey();
     if (storedApiKey) {
       setApiKey(storedApiKey);
@@ -207,7 +210,7 @@ export default function Page() {
             </button>
           ) : null}
           <HistoryMenu entries={promptHistory} activeId={activeHistoryId} onSelect={selectHistoryEntry} onDelete={deleteHistoryEntry} />
-          <ApiKeyMenu apiKey={apiKey} model={model} onApiKeyChange={updateApiKey} onModelChange={setModel} />
+          <ApiKeyMenu apiKey={apiKey} model={model} onApiKeyChange={updateApiKey} onModelChange={(value) => { setModel(value); saveStoredModel(value); }} />
         </div>
       </header>
 

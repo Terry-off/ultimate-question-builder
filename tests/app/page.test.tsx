@@ -107,7 +107,7 @@ describe("main page flow", () => {
     await user.click(screen.getByRole("button", { name: "적용" }));
 
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "AI 질문 생성 앱의 사업성이 있을지 알고 싶어.");
-    await user.click(screen.getByRole("button", { name: "시작" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문으로 만들어" }));
 
     expect(await screen.findByText("방향")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "후속 질문 답하기" })).not.toBeInTheDocument();
@@ -142,7 +142,7 @@ describe("main page flow", () => {
     const user = userEvent.setup();
     render(<Page />);
 
-    await user.click(screen.getByRole("button", { name: "시작" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문으로 만들어" }));
     expect(screen.getAllByText("OpenAI API 키를 먼저 입력해주세요.").length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole("button", { name: /API 키/ }));
@@ -172,7 +172,7 @@ describe("main page flow", () => {
     await user.type(screen.getByLabelText("OpenAI API 키"), "sk-test");
     await user.click(screen.getByRole("button", { name: "적용" }));
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "기다리는 동안 로딩이 보여야 해.");
-    await user.click(screen.getByRole("button", { name: "시작" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문으로 만들어" }));
 
     expect(await screen.findByText("생각 중")).toBeInTheDocument();
     expect(screen.getByText("질문 속 숨은 목적을 찾고 있어요")).toBeInTheDocument();
@@ -228,7 +228,7 @@ describe("main page flow", () => {
 
     await waitFor(() => expect(screen.getByRole("button", { name: /API 키 설정됨/ })).toBeInTheDocument());
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "저장된 API 키로 바로 분석되는지 확인하고 싶어.");
-    await user.click(screen.getByRole("button", { name: "시작" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문으로 만들어" }));
 
     await screen.findByText("방향");
     expect(fetch).toHaveBeenCalledWith(
@@ -278,7 +278,7 @@ describe("main page flow", () => {
 
     await waitFor(() => expect(screen.getByRole("button", { name: /API 키 설정됨/ })).toBeInTheDocument());
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "주소가 바뀌어도 저장된 키로 바로 분석되는지 확인하고 싶어.");
-    await user.click(screen.getByRole("button", { name: "시작" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문으로 만들어" }));
 
     await screen.findByText("방향");
   });
@@ -294,7 +294,7 @@ describe("main page flow", () => {
 
     expect(localStorage.getItem("ultimate-question-builder:openai-api-key")).toBe("sk-persisted");
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "저장된 키가 메뉴를 열어도 유지되는지 확인하고 싶어.");
-    await user.click(screen.getByRole("button", { name: "시작" }));
+    await user.click(screen.getByRole("button", { name: "궁극의 질문으로 만들어" }));
 
     await screen.findByText("방향");
     expect(fetch).toHaveBeenCalledWith(
@@ -303,5 +303,22 @@ describe("main page flow", () => {
         body: expect.stringContaining("sk-persisted")
       })
     );
+  });
+
+  it("saves the selected GPT model and restores it on the next visit", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<Page />);
+
+    await user.click(screen.getByRole("button", { name: /API 키/ }));
+    await user.selectOptions(screen.getByLabelText("GPT 모델"), "gpt-5.5-pro");
+
+    expect(localStorage.getItem("ultimate-question-builder:gpt-model")).toBe("gpt-5.5-pro");
+
+    unmount();
+    render(<Page />);
+
+    await user.click(screen.getByRole("button", { name: /API 키/ }));
+
+    expect(screen.getByLabelText("GPT 모델")).toHaveValue("gpt-5.5-pro");
   });
 });

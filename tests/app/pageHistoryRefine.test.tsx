@@ -76,7 +76,7 @@ const createFirstResult = async () => {
   await user.type(screen.getByLabelText("OpenAI API 키"), "sk-test");
   await user.click(screen.getByRole("button", { name: "적용" }));
   await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "작은 카페 콘셉트를 어떻게 정하면 좋을지 알고 싶어.");
-  await user.click(screen.getByRole("button", { name: "시작" }));
+  await user.click(screen.getByRole("button", { name: "궁극의 질문으로 만들어" }));
   await screen.findByText("방향");
   await user.click(screen.getByRole("button", { name: "선택 1-A" }));
   await user.click(screen.getByRole("button", { name: "선택 2-A" }));
