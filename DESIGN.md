@@ -73,6 +73,7 @@ All spacing derives from 4px.
 - Main surface: fixed 100dvh experience without page scroll
 - Follow-up layout: three columns on desktop, one column on narrow mobile with compact horizontal direction controls
 - Result modal: inner content may scroll, but the page behind it must remain fixed.
+- Desktop result modal: bottom controls stay visible; only the generated prompt body scrolls when the answer is long.
 
 ### Rules
 

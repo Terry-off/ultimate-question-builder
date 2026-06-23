@@ -34,4 +34,20 @@ describe("CopyButton", () => {
 
     expect(screen.getByRole("button", { name: "복사" })).toBeInTheDocument();
   });
+
+  it("resets feedback when the reset key changes", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn().mockResolvedValue(undefined) }
+    });
+    const { rerender } = render(<CopyButton text="같은 프롬프트" resetKey="deepVersion" />);
+
+    await user.click(screen.getByRole("button", { name: "복사" }));
+    expect(screen.getByRole("button", { name: "복사됨" })).toBeInTheDocument();
+
+    rerender(<CopyButton text="같은 프롬프트" resetKey="expertVersion" />);
+
+    expect(screen.getByRole("button", { name: "복사" })).toBeInTheDocument();
+  });
 });

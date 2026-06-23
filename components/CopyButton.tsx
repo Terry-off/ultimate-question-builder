@@ -3,12 +3,12 @@
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export function CopyButton({ text }: { text: string }) {
+export function CopyButton({ text, resetKey }: { text: string; resetKey?: string }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setCopied(false);
-  }, [text]);
+  }, [resetKey, text]);
 
   return (
     <button

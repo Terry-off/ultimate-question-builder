@@ -86,6 +86,7 @@ export function ResultTabs({
       <PromptCard
         title={activeTab.label}
         text={activeText}
+        copyResetKey={active}
         editable={editable}
         onTextChange={(value) => changePrompt(active, value)}
       />

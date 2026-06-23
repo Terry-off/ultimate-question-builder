@@ -750,9 +750,13 @@ button:disabled {
 
 .result-modal {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   width: min(980px, 100%);
-  max-height: min(90dvh, 860px);
-  overflow: auto;
+  height: min(calc(100dvh - 32px), 860px);
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
   border-radius: 30px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
@@ -767,19 +771,20 @@ button:disabled {
 }
 
 .modal-close {
-  position: sticky;
-  top: 0;
-  float: right;
+  position: absolute;
+  top: clamp(22px, 4vw, 34px);
+  right: clamp(22px, 4vw, 34px);
   z-index: 2;
   min-height: 38px;
 }
 
 .result-content {
+  flex: 1 1 auto;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 14px;
-  clear: both;
   min-height: 0;
+  padding-top: 40px;
 }
 
 .result-content h2 {
@@ -817,7 +822,10 @@ button:disabled {
 }
 
 .prompt-panel {
+  display: flex;
+  flex-direction: column;
   min-height: 0;
+  overflow: hidden;
   padding: 18px;
 }
 
@@ -839,7 +847,8 @@ button:disabled {
 }
 
 .prompt-output {
-  max-height: 40dvh;
+  flex: 1 1 auto;
+  min-height: 120px;
   overflow: auto;
   margin: 14px 0 0;
   white-space: pre-wrap;
@@ -863,7 +872,8 @@ button:disabled {
 }
 
 .result-refine-panel {
-  margin-top: 14px;
+  flex: 0 0 auto;
+  margin-top: 0;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.052);
@@ -938,9 +948,10 @@ button:disabled {
 }
 
 .modal-actions {
+  flex: 0 0 auto;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 0;
 }
 
 .modal-actions .primary-action {
@@ -1249,7 +1260,10 @@ button:disabled {
   }
 
   .result-modal {
+    display: block;
+    height: auto;
     max-height: calc(100dvh - 20px);
+    overflow: auto;
     border-radius: 24px;
     background:
       linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),

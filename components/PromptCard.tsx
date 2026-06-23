@@ -3,16 +3,17 @@ import { CopyButton } from "./CopyButton";
 type PromptCardProps = {
   readonly title: string;
   readonly text: string;
+  readonly copyResetKey?: string;
   readonly editable?: boolean;
   readonly onTextChange?: (value: string) => void;
 };
 
-export function PromptCard({ title, text, editable = false, onTextChange }: PromptCardProps) {
+export function PromptCard({ title, text, copyResetKey, editable = false, onTextChange }: PromptCardProps) {
   return (
     <div className={`prompt-panel ${editable ? "prompt-panel-editing" : ""}`}>
       <div className="prompt-panel-header">
         <h3>{title}</h3>
-        <CopyButton text={text} />
+        <CopyButton text={text} resetKey={copyResetKey} />
       </div>
       {editable ? (
         <textarea

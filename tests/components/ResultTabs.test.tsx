@@ -49,4 +49,29 @@ describe("ResultTabs", () => {
 
     expect(screen.getByRole("button", { name: "복사" })).toBeInTheDocument();
   });
+
+  it("resets copy feedback on version changes even when prompt text is identical", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn().mockResolvedValue(undefined) }
+    });
+    render(
+      <ResultTabs
+        result={{
+          ...result,
+          shortVersion: "같은 질문",
+          deepVersion: "같은 질문",
+          expertVersion: "같은 질문"
+        }}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "복사" }));
+    expect(screen.getByRole("button", { name: "복사됨" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "전문가로 물어보기" }));
+
+    expect(screen.getByRole("button", { name: "복사" })).toBeInTheDocument();
+  });
 });
