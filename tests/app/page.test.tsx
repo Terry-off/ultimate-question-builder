@@ -123,6 +123,7 @@ describe("main page flow", () => {
     await waitFor(() => expect(screen.getByRole("dialog", { name: "AI에게 물어보는 궁극의 질문입니다." })).toBeInTheDocument());
     expect(screen.getByText("AI에게 물어보는 궁극의 질문입니다.")).toBeInTheDocument();
     expect(screen.getAllByText("깊은 분석 버전").length).toBeGreaterThan(0);
+    expect(screen.queryByText("이 앱에 돈을 낼 사람은 누구라고 생각하나요?")).not.toBeInTheDocument();
     expect(fetch).toHaveBeenCalledWith(
       "/api/synthesize-ultimate-prompt",
       expect.objectContaining({

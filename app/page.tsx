@@ -89,6 +89,7 @@ async function saveServerApiKey(value: string) {
 export default function Page() {
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(DEFAULT_MODEL);
+  const [splineReady, setSplineReady] = useState(false);
   const [rawQuestion, setRawQuestion] = useState("");
   const [analysis, setAnalysis] = useState<QuestionAnalysis | null>(null);
   const [directionSettings, setDirectionSettings] = useState<DirectionSetting[]>([]);
@@ -215,7 +216,9 @@ export default function Page() {
             src={SPLINE_URL}
             frameBorder="0"
             allow="autoplay; fullscreen; xr-spatial-tracking"
-            className="spline-embed"
+            onLoad={() => setSplineReady(true)}
+            onError={() => setSplineReady(false)}
+            className={`spline-embed ${splineReady ? "spline-embed-ready" : ""}`}
           />
         </div>
         {!analysis && !loading ? (
@@ -233,7 +236,7 @@ export default function Page() {
 
       {loading ? <LoadingLayer mode={analysis ? "synthesize" : "analyze"} question={rawQuestion} /> : null}
 
-      {analysis ? (
+      {analysis && !result ? (
         <section className="followup-dock" aria-label="맞춤 후속 질문">
           <FollowupForm
             questions={followupQuestions}

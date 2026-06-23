@@ -160,6 +160,19 @@ button:disabled {
   will-change: transform;
 }
 
+.spline-frame::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.22), transparent 12%),
+    radial-gradient(ellipse at 50% 55%, rgba(6, 8, 11, 0.24), transparent 31%),
+    radial-gradient(circle at 54% 30%, rgba(114, 247, 255, 0.12), transparent 26%),
+    linear-gradient(90deg, rgba(6, 8, 11, 0.34), transparent 36%, transparent 64%, rgba(6, 8, 11, 0.34));
+}
+
 .experience-shell.is-analyzing .spline-frame {
   transform: scale(2.12) translateY(7vh);
   filter: brightness(0.88) contrast(1.08) saturate(0.92);
@@ -178,18 +191,35 @@ button:disabled {
 .spline-frame::after {
   position: absolute;
   inset: 0;
+  z-index: 2;
   content: "";
   pointer-events: none;
   background:
+    radial-gradient(circle at 50% 50%, rgba(215, 222, 222, 0.94) 0 52px, transparent 92px),
+    linear-gradient(90deg, rgba(6, 8, 11, 0.5), transparent 22%, transparent 72%, rgba(6, 8, 11, 0.44)),
+    linear-gradient(180deg, rgba(6, 8, 11, 0.18), transparent 34%, rgba(6, 8, 11, 0.76));
+}
+
+.spline-frame:has(.spline-embed-ready)::after {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(215, 222, 222, 0.74) 0 44px, transparent 86px),
     linear-gradient(90deg, rgba(6, 8, 11, 0.5), transparent 22%, transparent 72%, rgba(6, 8, 11, 0.44)),
     linear-gradient(180deg, rgba(6, 8, 11, 0.18), transparent 34%, rgba(6, 8, 11, 0.76));
 }
 
 .spline-embed {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   min-height: 100dvh;
   border: 0;
+  opacity: 0;
+  transition: opacity 520ms ease;
+}
+
+.spline-embed-ready {
+  opacity: 1;
 }
 
 .hero-input-layer {
@@ -706,14 +736,14 @@ button:disabled {
   place-items: center;
   overflow: hidden;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.62);
+  background: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(18px) saturate(130%);
   animation: fade-in 220ms ease both;
 }
 
 .result-modal {
   position: relative;
-  width: min(980px, calc(100vw - 24px));
+  width: min(980px, 100%);
   max-height: min(82dvh, 860px);
   overflow: hidden;
   border-radius: 30px;
@@ -970,7 +1000,8 @@ button:disabled {
 
   .followup-dock {
     width: calc(100vw - 24px);
-    max-height: min(82dvh, 760px);
+    bottom: 10px;
+    max-height: min(calc(100dvh - 74px), 820px);
   }
 }
 
@@ -981,13 +1012,28 @@ button:disabled {
 }
 
 @media (max-width: 760px) {
-  .tuning-grid,
+  .tuning-grid {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .tuning-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tuning-row {
+    flex: 0 0 min(226px, 78vw);
+  }
+
   .question-signal-list {
     grid-template-columns: 1fr;
+    grid-auto-rows: auto;
   }
 
   .choice-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .modal-actions {
@@ -1013,8 +1059,173 @@ button:disabled {
     font-size: 14px;
   }
 
+  .spline-frame::before {
+    z-index: 2;
+    background:
+      radial-gradient(ellipse at 50% 31%, rgba(238, 245, 246, 0.52), transparent 22%),
+      radial-gradient(ellipse at 50% 57%, rgba(121, 238, 244, 0.18), transparent 33%),
+      radial-gradient(ellipse at 50% 49%, rgba(216, 222, 222, 0.78), transparent 18%),
+      linear-gradient(90deg, rgba(13, 16, 19, 0.42), rgba(211, 216, 216, 0.7) 34%, rgba(211, 216, 216, 0.7) 66%, rgba(13, 16, 19, 0.42));
+  }
+
+  .spline-frame::after {
+    z-index: 3;
+    background:
+      radial-gradient(circle at 10% 96%, rgba(12, 15, 18, 0.96) 0 46px, transparent 58px),
+      linear-gradient(90deg, rgba(6, 8, 11, 0.48), transparent 22%, transparent 72%, rgba(6, 8, 11, 0.46)),
+      linear-gradient(180deg, rgba(6, 8, 11, 0.1), transparent 34%, rgba(6, 8, 11, 0.72));
+  }
+
+  .spline-embed-ready {
+    opacity: 0.36;
+  }
+
+  .followup-dock {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 66px);
+  }
+
+  .followup-console {
+    gap: 10px;
+    border-radius: 24px;
+    padding: 12px;
+  }
+
+  .tuning-panel {
+    border-radius: 20px;
+    padding: 10px;
+  }
+
+  .tuning-panel h3 {
+    font-size: 15px;
+  }
+
+  .tuning-row {
+    border-radius: 14px;
+    padding: 8px 10px;
+  }
+
+  .question-signal-list {
+    gap: 10px;
+    padding-right: 0;
+  }
+
+  .signal-panel {
+    min-height: auto;
+    border-radius: 20px;
+    padding: 12px;
+  }
+
+  .signal-panel h3 {
+    min-height: 0;
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .choice-grid {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .choice-chip {
+    min-height: 42px;
+    border-radius: 13px;
+    padding: 8px 9px;
+    font-size: 12px;
+  }
+
+  .direct-answer {
+    margin-top: 10px;
+    padding-top: 0;
+  }
+
+  .followup-submit {
+    width: min(100%, 300px);
+  }
+
+  .result-backdrop {
+    align-items: end;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.78);
+  }
+
+  .result-modal {
+    max-height: calc(100dvh - 20px);
+    border-radius: 24px;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+      rgba(7, 10, 14, 0.96);
+    padding: 14px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+
+  .result-content {
+    padding-top: 48px;
+  }
+
   .result-content h2 {
-    font-size: 24px;
+    font-size: 20px;
+    line-height: 1.22;
+  }
+
+  .result-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .result-tab {
+    min-height: 38px;
+    font-size: 12px;
+  }
+
+  .prompt-panel {
+    border-radius: 20px;
+    padding: 12px;
+  }
+
+  .prompt-panel-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .prompt-output {
+    max-height: 36dvh;
+    border-radius: 16px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.58;
+  }
+
+  .modal-actions {
+    margin-top: 12px;
+  }
+
+  .modal-actions .ghost-action,
+  .modal-actions .primary-action {
+    width: 100%;
+  }
+
+  .api-popover {
+    position: fixed;
+    top: 58px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100dvh - 72px);
+    overflow: auto;
+    border-radius: 22px;
+    background: rgba(8, 12, 17, 0.98);
+  }
+}
+
+@media (max-width: 360px) {
+  .choice-grid {
+    grid-template-columns: 1fr;
   }
 }
 

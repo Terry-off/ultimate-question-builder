@@ -71,12 +71,13 @@ All spacing derives from 4px.
 
 - Max content width: 1280px
 - Main surface: fixed 100dvh experience without page scroll
-- Follow-up layout: three columns on desktop, one column on narrow mobile
+- Follow-up layout: three columns on desktop, one column on narrow mobile with compact horizontal direction controls
 
 ### Rules
 
 - Avoid main document scrolling; inner panels may scroll only when content overflows.
 - Controls must keep stable sizes during hover and loading.
+- On mobile, the follow-up sheet should start near the top bar and give most of the height to question cards.
 
 ## 5. Components
 
@@ -88,6 +89,15 @@ All spacing derives from 4px.
 - **States**: default, focus glow, hover border, loading overlay.
 - **Accessibility**: visible labels are optional only when an `sr-only` label exists.
 - **Motion**: enters with transform and opacity only.
+
+### Mobile Follow-up Sheet
+
+- **Structure**: near full-height bottom sheet with a compact direction strip, scrollable question list, and stable submit button.
+- **Variants**: single-column cards on phones, multi-column cards on larger screens.
+- **Spacing**: `--space-2` to `--space-4` on phones.
+- **States**: selected choices use cyan border and glow; direct input remains one-line.
+- **Accessibility**: each slider and direct input keeps a unique label.
+- **Motion**: sheet-up transform only.
 
 ### Cyan Action
 
