@@ -18,4 +18,20 @@ describe("CopyButton", () => {
     expect(writeText).toHaveBeenCalledWith("복사할 프롬프트");
     expect(screen.getByRole("button", { name: "복사됨" })).toBeInTheDocument();
   });
+
+  it("resets feedback when the copied text changes", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn().mockResolvedValue(undefined) }
+    });
+    const { rerender } = render(<CopyButton text="첫 번째 프롬프트" />);
+
+    await user.click(screen.getByRole("button", { name: "복사" }));
+    expect(screen.getByRole("button", { name: "복사됨" })).toBeInTheDocument();
+
+    rerender(<CopyButton text="두 번째 프롬프트" />);
+
+    expect(screen.getByRole("button", { name: "복사" })).toBeInTheDocument();
+  });
 });

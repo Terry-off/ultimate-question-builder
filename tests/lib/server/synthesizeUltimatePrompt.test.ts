@@ -109,4 +109,28 @@ describe("synthesizeUltimatePrompt service", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toContain("궁극 질문 생성에 실패했습니다");
   });
+
+  it("includes the user's edited prompt and feedback when refining a result", async () => {
+    const requestStructuredOutput = vi.fn().mockResolvedValue({
+      shortVersion: "수정된 짧은 버전",
+      deepVersion: "수정된 깊은 버전",
+      expertVersion: "수정된 전문가 버전",
+      whyThisPromptIsStrong: ["사용자 피드백을 반영한다."],
+      improvementSuggestions: []
+    });
+
+    await synthesizeUltimatePrompt({
+      ...validInput,
+      revision: {
+        selectedVersion: "deepVersion",
+        editedPrompt: "사용자가 직접 고친 깊은 질문",
+        feedback: "결과를 더 전문가답고 실행 순서가 보이게 바꿔줘."
+      }
+    }, requestStructuredOutput);
+
+    const prompt = requestStructuredOutput.mock.calls[0]?.[0].prompt;
+    expect(prompt).toContain("사용자가 결과를 보고 추가로 남긴 의견");
+    expect(prompt).toContain("사용자가 직접 고친 깊은 질문");
+    expect(prompt).toContain("결과를 더 전문가답고 실행 순서가 보이게 바꿔줘.");
+  });
 });

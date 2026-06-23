@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type WheelEvent } from "react";
 import { ApiKeyMenu } from "@/components/ApiKeyMenu";
 import { FollowupForm } from "@/components/FollowupForm";
 import { LoadingLayer } from "@/components/LoadingLayer";
 import { QuestionInput } from "@/components/QuestionInput";
-import { ResultTabs } from "@/components/ResultTabs";
+import { ResultModal, type ResultRefineRequest } from "@/components/ResultModal";
 import { API_KEY_STORAGE_KEY, STORED_API_KEY_SENTINEL, isSharedApiKeyPersistenceEnabled } from "@/lib/apiKeyShared";
 import { DEFAULT_MODEL, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type QuestionTypeOption, type UltimatePromptResult } from "@/lib/types";
 import type { QuestionType } from "@/lib/questionTypes";
@@ -90,6 +90,7 @@ export default function Page() {
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(DEFAULT_MODEL);
   const [splineReady, setSplineReady] = useState(false);
+  const [stageZoom, setStageZoom] = useState(1);
   const [rawQuestion, setRawQuestion] = useState("");
   const [analysis, setAnalysis] = useState<QuestionAnalysis | null>(null);
   const [directionSettings, setDirectionSettings] = useState<DirectionSetting[]>([]);
@@ -157,7 +158,7 @@ export default function Page() {
     }
   };
 
-  const synthesize = async (answers: FollowupAnswer[], settings: DirectionSetting[]) => {
+  const synthesize = async (answers: FollowupAnswer[], settings: DirectionSetting[], revision?: ResultRefineRequest) => {
     if (!analysis) return;
     if (!apiKey) {
       setError("OpenAI API 키를 먼저 입력해주세요.");
@@ -175,7 +176,8 @@ export default function Page() {
         model,
         analysis,
         directionSettings: settings,
-        followupAnswers: answers
+        followupAnswers: answers,
+        revision
       });
       setResult(data);
     } catch (caught) {
@@ -196,6 +198,14 @@ export default function Page() {
     setError(undefined);
   };
 
+  const adjustRobotZoom = (event: WheelEvent<HTMLElement>) => {
+    if (analysis || loading) return;
+
+    event.preventDefault();
+    const direction = event.deltaY < 0 ? 0.08 : -0.08;
+    setStageZoom((current) => Math.min(1.28, Math.max(0.88, Math.round((current + direction) * 100) / 100)));
+  };
+
   return (
     <main className={shellClassName}>
       <header className="site-topbar">
@@ -210,7 +220,7 @@ export default function Page() {
       </header>
 
       <section className="hero-stage" aria-label="첫 질문 입력">
-        <div className="spline-frame">
+        <div className="spline-frame" style={!analysis && !loading ? { transform: `scale(${stageZoom})` } : undefined}>
           <iframe
             title="NEXBOT robot animation"
             src={SPLINE_URL}
@@ -221,6 +231,7 @@ export default function Page() {
             className={`spline-embed ${splineReady ? "spline-embed-ready" : ""}`}
           />
         </div>
+        {!analysis && !loading ? <div className="robot-wheel-layer" aria-hidden="true" onWheel={adjustRobotZoom} /> : null}
         {!analysis && !loading ? (
           <div className="hero-input-layer">
             <QuestionInput
@@ -249,22 +260,15 @@ export default function Page() {
       ) : null}
 
       {result ? (
-        <div className="result-backdrop">
-          <section className="result-modal" role="dialog" aria-modal="true" aria-label="AI에게 물어보는 궁극의 질문입니다.">
-            <button type="button" onClick={() => setResult(null)} className="modal-close">
-              닫기
-            </button>
-            <ResultTabs result={result} />
-            <div className="modal-actions">
-              <button type="button" onClick={() => setResult(null)} className="ghost-action ghost-action-dark">
-                다시 다듬기
-              </button>
-              <button type="button" onClick={reset} className="primary-action">
-                새 질문 만들기
-              </button>
-            </div>
-          </section>
-        </div>
+        <ResultModal
+          result={result}
+          loading={loading}
+          onBackToFollowups={() => setResult(null)}
+          onReset={reset}
+          onRefine={(revision) => {
+            void synthesize(followupAnswers, directionSettings, revision);
+          }}
+        />
       ) : null}
     </main>
   );

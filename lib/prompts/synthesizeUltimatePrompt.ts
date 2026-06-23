@@ -1,11 +1,12 @@
 import { QUESTION_TYPE_LABELS } from "../questionTypes";
-import type { DirectionSetting, FollowupAnswer, QuestionAnalysis } from "../types";
+import type { DirectionSetting, FollowupAnswer, PromptRevision, QuestionAnalysis } from "../types";
 
 export function buildSynthesizeUltimatePrompt(input: {
   rawQuestion: string;
   analysis: QuestionAnalysis;
   directionSettings: DirectionSetting[];
   followupAnswers: FollowupAnswer[];
+  revision?: PromptRevision;
 }) {
   const questionById = new Map(input.analysis.followupQuestions.map((question) => [question.id, question]));
   const answers = input.followupAnswers
@@ -18,6 +19,9 @@ export function buildSynthesizeUltimatePrompt(input: {
   const directionSettings = input.directionSettings
     .map((item) => `- ${QUESTION_TYPE_LABELS[item.type]}: ${item.weight}/100 (${item.reason})`)
     .join("\n");
+  const revision = input.revision
+    ? `\n\n사용자가 결과를 보고 추가로 남긴 의견:\n- 다시 다듬을 버전: ${input.revision.selectedVersion}\n- 사용자가 직접 수정한 현재 본문:\n${input.revision.editedPrompt}\n- 추가 의견:\n${input.revision.feedback}\n\n위 수정 본문을 새 기준점으로 삼고, 추가 의견을 반영해 세 가지 버전을 다시 작성하라.`
+    : "";
 
   return `너는 사용자의 평범한 질문을 AI가 깊게 사고할 수밖에 없는 궁극 질문 프롬프트로 재설계한다.
 
@@ -34,7 +38,7 @@ ${input.rawQuestion}
 ${directionSettings}
 
 사용자의 후속 답변:
-${answers}
+${answers}${revision}
 
 반드시 세 가지 버전을 생성하라.
 1. shortVersion: 빠르게 복사해서 쓸 수 있는 버전

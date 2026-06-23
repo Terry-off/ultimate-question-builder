@@ -222,6 +222,13 @@ button:disabled {
   opacity: 1;
 }
 
+.robot-wheel-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: zoom-in;
+}
+
 .hero-input-layer {
   position: relative;
   z-index: 2;
@@ -744,11 +751,19 @@ button:disabled {
 .result-modal {
   position: relative;
   width: min(980px, 100%);
-  max-height: min(82dvh, 860px);
-  overflow: hidden;
+  max-height: min(90dvh, 860px);
+  overflow: auto;
   border-radius: 30px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+    rgba(7, 10, 14, 0.96);
   padding: clamp(22px, 4vw, 34px);
   animation: modal-in 320ms ease both;
+  scrollbar-width: none;
+}
+
+.result-modal::-webkit-scrollbar {
+  display: none;
 }
 
 .modal-close {
@@ -806,6 +821,11 @@ button:disabled {
   padding: 18px;
 }
 
+.prompt-panel-editing {
+  border-color: rgba(114, 247, 255, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(114, 247, 255, 0.16), 0 22px 70px rgba(24, 220, 233, 0.12);
+}
+
 .prompt-panel-header {
   justify-content: space-between;
   gap: 16px;
@@ -832,6 +852,85 @@ button:disabled {
   font-size: 14px;
   line-height: 1.65;
   scrollbar-width: none;
+}
+
+.prompt-editor {
+  display: block;
+  width: 100%;
+  min-height: 170px;
+  resize: vertical;
+  outline: none;
+}
+
+.result-refine-panel {
+  margin-top: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.052);
+  padding: 14px;
+}
+
+.result-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.edit-toggle {
+  flex: 0 0 auto;
+}
+
+.edit-toggle-active {
+  border-color: rgba(114, 247, 255, 0.68);
+  background: rgba(114, 247, 255, 0.15);
+  color: #ffffff;
+}
+
+.edit-state-note {
+  margin: 0;
+  color: rgba(114, 247, 255, 0.92);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.revision-field {
+  display: block;
+  margin-top: 12px;
+  color: rgba(248, 251, 255, 0.72);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.revision-input {
+  display: block;
+  width: 100%;
+  min-height: 78px;
+  margin-top: 8px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.34);
+  color: #ffffff;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.revision-input:focus {
+  border-color: rgba(114, 247, 255, 0.74);
+  box-shadow: 0 0 0 4px rgba(114, 247, 255, 0.12);
+}
+
+.revision-input::placeholder {
+  color: rgba(238, 244, 250, 0.42);
+}
+
+.refine-action {
+  margin-top: 12px;
 }
 
 .copy-action {
@@ -1199,6 +1298,34 @@ button:disabled {
     padding: 12px;
     font-size: 13px;
     line-height: 1.58;
+  }
+
+  .prompt-editor {
+    min-height: 150px;
+  }
+
+  .result-refine-panel {
+    border-radius: 18px;
+    padding: 12px;
+  }
+
+  .result-edit-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .edit-toggle {
+    width: 100%;
+  }
+
+  .revision-input {
+    min-height: 70px;
+    border-radius: 16px;
+    font-size: 12px;
+  }
+
+  .refine-action {
+    width: 100%;
   }
 
   .modal-actions {

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import { ResultTabs } from "@/components/ResultTabs";
 import type { UltimatePromptResult } from "@/lib/types";
 
@@ -31,5 +32,21 @@ describe("ResultTabs", () => {
     expect(screen.getByRole("button", { name: "전문가로 물어보기" })).toBeInTheDocument();
     expect(screen.queryByText("Step 3")).not.toBeInTheDocument();
     expect(screen.queryByText("Step 4")).not.toBeInTheDocument();
+  });
+
+  it("resets copy feedback when users select another prompt version", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn().mockResolvedValue(undefined) }
+    });
+    render(<ResultTabs result={result} />);
+
+    await user.click(screen.getByRole("button", { name: "복사" }));
+    expect(screen.getByRole("button", { name: "복사됨" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "짧게 물어보기" }));
+
+    expect(screen.getByRole("button", { name: "복사" })).toBeInTheDocument();
   });
 });

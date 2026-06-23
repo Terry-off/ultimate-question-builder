@@ -3,8 +3,10 @@ import { QUESTION_TYPES } from "./questionTypes";
 
 export const MAX_INPUT_LENGTH = 3000;
 export const DEFAULT_MODEL = "gpt-5.5";
+export const PROMPT_VERSION_IDS = ["shortVersion", "deepVersion", "expertVersion"] as const;
 
 export const questionTypeSchema = z.enum(QUESTION_TYPES);
+export const promptVersionIdSchema = z.enum(PROMPT_VERSION_IDS);
 
 const rawQuestionSchema = z
   .string()
@@ -72,6 +74,12 @@ export const ultimatePromptResultSchema = z.object({
   improvementSuggestions: z.array(z.string())
 });
 
+export const promptRevisionSchema = z.object({
+  selectedVersion: promptVersionIdSchema,
+  editedPrompt: z.string().trim().min(1, "수정할 본문을 입력해주세요.").max(MAX_INPUT_LENGTH, "수정 본문은 3000자 이하로 입력해주세요."),
+  feedback: z.string().trim().min(1, "추가로 반영할 내용을 입력해주세요.").max(MAX_INPUT_LENGTH, "추가 의견은 3000자 이하로 입력해주세요.")
+});
+
 export const analyzeQuestionRequestSchema = z.object({
   rawQuestion: rawQuestionSchema,
   apiKey: apiKeySchema,
@@ -88,7 +96,8 @@ export const synthesizePromptRequestSchema = z.object({
   model: modelSchema,
   analysis: questionAnalysisSchema,
   directionSettings: z.array(directionSettingSchema).min(1).max(3),
-  followupAnswers: z.array(followupAnswerSchema).length(6)
+  followupAnswers: z.array(followupAnswerSchema).length(6),
+  revision: promptRevisionSchema.optional()
 });
 
 export type QuestionAnalysis = z.infer<typeof questionAnalysisSchema>;
@@ -98,5 +107,7 @@ export type FollowupQuestion = z.infer<typeof followupQuestionSchema>;
 export type FollowupAnswer = z.infer<typeof followupAnswerSchema>;
 export type QualityScore = z.infer<typeof qualityScoreSchema>;
 export type UltimatePromptResult = z.infer<typeof ultimatePromptResultSchema>;
+export type PromptVersionId = z.infer<typeof promptVersionIdSchema>;
+export type PromptRevision = z.infer<typeof promptRevisionSchema>;
 export type AnalyzeQuestionRequest = z.infer<typeof analyzeQuestionRequestSchema>;
 export type SynthesizePromptRequest = z.infer<typeof synthesizePromptRequestSchema>;

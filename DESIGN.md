@@ -72,12 +72,14 @@ All spacing derives from 4px.
 - Max content width: 1280px
 - Main surface: fixed 100dvh experience without page scroll
 - Follow-up layout: three columns on desktop, one column on narrow mobile with compact horizontal direction controls
+- Result modal: inner content may scroll, but the page behind it must remain fixed.
 
 ### Rules
 
 - Avoid main document scrolling; inner panels may scroll only when content overflows.
 - Controls must keep stable sizes during hover and loading.
 - On mobile, the follow-up sheet should start near the top bar and give most of the height to question cards.
+- First-screen robot zoom responds to mouse wheel with bounded scale only; it must never create document scroll.
 
 ## 5. Components
 
@@ -116,6 +118,15 @@ All spacing derives from 4px.
 - **States**: static asset, no interaction.
 - **Accessibility**: Open Graph image includes descriptive alt text.
 - **Motion**: none.
+
+### Result Refinement Panel
+
+- **Structure**: editable prompt body, visible editing state, feedback textarea, and one cyan regenerate action.
+- **Variants**: desktop inline controls, mobile stacked controls.
+- **Spacing**: `--space-3` to `--space-4`.
+- **States**: read-only, editing, loading, disabled when feedback is empty.
+- **Accessibility**: editable prompt and feedback field must have explicit labels.
+- **Motion**: button and panel feedback use transform, opacity, and glow only.
 
 ## 6. Motion & Interaction
 
