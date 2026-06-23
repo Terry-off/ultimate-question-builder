@@ -2,6 +2,12 @@
 
 AI에게 더 잘 물어볼 수 있는 궁극의 질문을 만드는 Next.js 앱입니다.
 
+## 웹 주소
+
+현재 공개 주소는 `https://ultimate-question-builder.vercel.app`입니다.
+
+카카오톡 같은 메신저에 주소를 붙여넣으면 Open Graph 미리보기 이미지, 제목, 설명이 표시되도록 설정되어 있습니다.
+
 ## 로컬 실행
 
 ```bash
