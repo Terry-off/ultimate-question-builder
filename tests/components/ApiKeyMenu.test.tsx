@@ -42,4 +42,22 @@ describe("ApiKeyMenu", () => {
 
     expect(onModelChange).toHaveBeenCalledWith("gpt-5.5-pro");
   });
+
+  it("closes the popover when users click outside", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <>
+        <ApiKeyMenu apiKey="sk-existing" model="gpt-5.5" onApiKeyChange={vi.fn()} onModelChange={vi.fn()} />
+        <button type="button">바깥 영역</button>
+      </>
+    );
+
+    await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
+    expect(screen.getByLabelText("GPT 모델")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "바깥 영역" }));
+
+    expect(screen.queryByLabelText("GPT 모델")).not.toBeInTheDocument();
+  });
 });

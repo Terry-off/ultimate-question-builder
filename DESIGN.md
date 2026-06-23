@@ -80,7 +80,7 @@ All spacing derives from 4px.
 - Avoid main document scrolling; inner panels may scroll only when content overflows.
 - Controls must keep stable sizes during hover and loading.
 - On mobile, the follow-up sheet should start near the top bar and give most of the height to question cards.
-- First-screen robot stage does not zoom on wheel; wheel input is blocked so the Spline canvas never reveals the page background.
+- First-screen robot stage does not apply custom wheel zoom; the Spline iframe keeps pointer input so hover and mouse-follow interactions work.
 
 ## 5. Components
 
@@ -136,6 +136,7 @@ All spacing derives from 4px.
 - **Spacing**: `--space-2` to `--space-4`.
 - **States**: saved API key, empty history, active history item, delete hover.
 - **Accessibility**: model selector and API key field keep explicit labels.
+- **Interaction**: popovers close on outside click and Escape.
 - **Storage**: API key and prompt history stay in the user's local browser storage.
 
 ## 6. Motion & Interaction

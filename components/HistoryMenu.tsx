@@ -1,8 +1,10 @@
 "use client";
 
 import { History, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PromptHistoryEntry } from "@/lib/promptHistory";
+import { MenuDismissLayer } from "./MenuDismissLayer";
+import { useOutsideDismiss } from "./useOutsideDismiss";
 
 type HistoryMenuProps = {
   readonly entries: readonly PromptHistoryEntry[];
@@ -24,46 +26,51 @@ const formatHistoryDate = (value: string) => {
 };
 
 export function HistoryMenu({ entries, activeId, onSelect, onDelete }: HistoryMenuProps) {
+  const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  useOutsideDismiss(menuRef, open, () => setOpen(false));
 
   return (
-    <div className="history-menu">
+    <div ref={menuRef} className="history-menu">
       <button type="button" onClick={() => setOpen((value) => !value)} className="topbar-button">
         <History size={16} />
         히스토리
         {entries.length > 0 ? <span className="history-count">{entries.length}</span> : null}
       </button>
       {open ? (
-        <div className="history-popover">
-          <div className="history-popover-head">
-            <strong>질문 히스토리</strong>
-            <span>이 브라우저에만 저장돼요</span>
-          </div>
-          {entries.length > 0 ? (
-            <div className="history-list">
-              {entries.map((entry) => (
-                <div key={entry.id} className={`history-item ${entry.id === activeId ? "history-item-active" : ""}`}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSelect(entry);
-                      setOpen(false);
-                    }}
-                    className="history-load"
-                  >
-                    <span className="history-title">{entry.title}</span>
-                    <span className="history-meta">{formatHistoryDate(entry.updatedAt)}</span>
-                  </button>
-                  <button type="button" onClick={() => onDelete(entry.id)} className="history-delete" aria-label={`${entry.title} 삭제`}>
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
+        <>
+          <MenuDismissLayer onDismiss={() => setOpen(false)} />
+          <div className="history-popover">
+            <div className="history-popover-head">
+              <strong>질문 히스토리</strong>
+              <span>이 브라우저에만 저장돼요</span>
             </div>
-          ) : (
-            <p className="history-empty">아직 저장된 질문이 없어요.</p>
-          )}
-        </div>
+            {entries.length > 0 ? (
+              <div className="history-list">
+                {entries.map((entry) => (
+                  <div key={entry.id} className={`history-item ${entry.id === activeId ? "history-item-active" : ""}`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelect(entry);
+                        setOpen(false);
+                      }}
+                      className="history-load"
+                    >
+                      <span className="history-title">{entry.title}</span>
+                      <span className="history-meta">{formatHistoryDate(entry.updatedAt)}</span>
+                    </button>
+                    <button type="button" onClick={() => onDelete(entry.id)} className="history-delete" aria-label={`${entry.title} 삭제`}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="history-empty">아직 저장된 질문이 없어요.</p>
+            )}
+          </div>
+        </>
       ) : null}
     </div>
   );

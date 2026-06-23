@@ -10,16 +10,16 @@ describe("hero robot wheel behavior", () => {
   it("keeps the robot background fixed when the mouse wheel moves", () => {
     const { container } = render(<Page />);
 
-    const wheelLayer = container.querySelector(".robot-wheel-layer");
+    const heroStage = screen.getByLabelText("첫 질문 입력");
     const splineFrame = screen.getByTitle("NEXBOT robot animation").parentElement;
-    expect(wheelLayer).not.toBeNull();
+    expect(container.querySelector(".robot-wheel-layer")).toBeNull();
     expect(splineFrame).not.toBeNull();
 
-    if (wheelLayer && splineFrame) {
-      fireEvent.wheel(wheelLayer, { deltaY: -120 });
+    if (splineFrame) {
+      fireEvent.wheel(heroStage, { deltaY: -120 });
       expect(splineFrame).not.toHaveStyle("transform: scale(1.08)");
 
-      fireEvent.wheel(wheelLayer, { deltaY: 120 });
+      fireEvent.wheel(heroStage, { deltaY: 120 });
       expect(splineFrame).not.toHaveStyle("transform: scale(0.92)");
     }
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type WheelEvent } from "react";
+import { useEffect, useState } from "react";
 import { ApiKeyMenu } from "@/components/ApiKeyMenu";
 import { FollowupForm } from "@/components/FollowupForm";
 import { HistoryMenu } from "@/components/HistoryMenu";
@@ -197,10 +197,6 @@ export default function Page() {
     persistHistory(removePromptHistoryEntry(promptHistory, id));
   };
 
-  const blockRobotWheel = (event: WheelEvent<HTMLElement>) => {
-    event.preventDefault();
-  };
-
   return (
     <main className={shellClassName}>
       <header className="site-topbar">
@@ -227,7 +223,6 @@ export default function Page() {
             className={`spline-embed ${splineReady ? "spline-embed-ready" : ""}`}
           />
         </div>
-        {!analysis && !loading ? <div className="robot-wheel-layer" aria-hidden="true" onWheel={blockRobotWheel} /> : null}
         {!analysis && !loading ? (
           <div className="hero-input-layer">
             <QuestionInput rawQuestion={rawQuestion} error={error} loading={loading} onChange={setRawQuestion} onSubmit={analyze} />
