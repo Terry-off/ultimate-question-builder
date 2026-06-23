@@ -6,7 +6,7 @@ import { FollowupForm } from "@/components/FollowupForm";
 import { LoadingLayer } from "@/components/LoadingLayer";
 import { QuestionInput } from "@/components/QuestionInput";
 import { ResultTabs } from "@/components/ResultTabs";
-import { API_KEY_STORAGE_KEY, STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
+import { API_KEY_STORAGE_KEY, STORED_API_KEY_SENTINEL, isSharedApiKeyPersistenceEnabled } from "@/lib/apiKeyShared";
 import { DEFAULT_MODEL, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type QuestionTypeOption, type UltimatePromptResult } from "@/lib/types";
 import type { QuestionType } from "@/lib/questionTypes";
 
@@ -68,6 +68,8 @@ function saveStoredApiKey(value: string) {
 }
 
 async function readServerApiKeyState() {
+  if (!isSharedApiKeyPersistenceEnabled()) return false;
+
   const response = await fetch("/api/api-key");
   if (!response.ok) return false;
   const data = await response.json();
@@ -75,6 +77,8 @@ async function readServerApiKeyState() {
 }
 
 async function saveServerApiKey(value: string) {
+  if (!isSharedApiKeyPersistenceEnabled()) return;
+
   await fetch("/api/api-key", {
     method: value ? "POST" : "DELETE",
     headers: { "Content-Type": "application/json" },

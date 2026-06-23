@@ -1,6 +1,6 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
+import { STORED_API_KEY_SENTINEL, isSharedApiKeyPersistenceEnabled } from "@/lib/apiKeyShared";
 
 type StoredApiKey = {
   apiKey: string;
@@ -25,6 +25,8 @@ export function isRealApiKey(value: unknown) {
 }
 
 export async function readPersistedApiKey() {
+  if (!isSharedApiKeyPersistenceEnabled()) return "";
+
   try {
     const raw = await readFile(/* turbopackIgnore: true */ getStoreFilePath(), "utf8");
     const parsed = JSON.parse(raw) as Partial<StoredApiKey>;
@@ -35,6 +37,8 @@ export async function readPersistedApiKey() {
 }
 
 export async function writePersistedApiKey(value: string) {
+  if (!isSharedApiKeyPersistenceEnabled()) return;
+
   const apiKey = cleanApiKey(value);
   if (!apiKey) return clearPersistedApiKey();
 
@@ -44,6 +48,8 @@ export async function writePersistedApiKey(value: string) {
 }
 
 export async function clearPersistedApiKey() {
+  if (!isSharedApiKeyPersistenceEnabled()) return;
+
   await rm(/* turbopackIgnore: true */ getStoreFilePath(), { force: true });
 }
 
