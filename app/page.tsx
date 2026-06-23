@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import { ApiKeyMenu } from "@/components/ApiKeyMenu";
 import { FollowupForm } from "@/components/FollowupForm";
+import { HeroStage } from "@/components/HeroStage";
 import { HistoryMenu } from "@/components/HistoryMenu";
 import { LoadingLayer } from "@/components/LoadingLayer";
-import { MatrixClickEffect } from "@/components/MatrixClickEffect";
 import { QuestionInput } from "@/components/QuestionInput";
 import { ResultModal, type ResultRefineRequest } from "@/components/ResultModal";
 import { STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
 import { readServerApiKeyState, readStoredApiKey, saveServerApiKey, saveStoredApiKey, testApiKeyConnection } from "@/lib/clientApiKey";
 import { createDirectionSettings } from "@/lib/directionSettings";
+import { DEFAULT_HERO_THEME, getHeroThemeStyle, selectRandomHeroTheme } from "@/lib/heroThemes";
 import { readStoredModel, readStoredProvider, saveStoredModel, saveStoredProvider } from "@/lib/modelPreference";
 import { DEFAULT_PROVIDER, PROVIDER_API_KEY_LABELS, getDefaultModelForProvider, type ModelProviderId } from "@/lib/modelProviders";
 import { postJson } from "@/lib/postJson";
@@ -28,6 +29,7 @@ export default function Page() {
   const [provider, setProvider] = useState<ModelProviderId>(DEFAULT_PROVIDER);
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(DEFAULT_MODEL);
+  const [heroTheme, setHeroTheme] = useState(DEFAULT_HERO_THEME);
   const [splineReady, setSplineReady] = useState(false);
   const [rawQuestion, setRawQuestion] = useState("");
   const [analysis, setAnalysis] = useState<QuestionAnalysis | null>(null);
@@ -49,6 +51,7 @@ export default function Page() {
     analysis ? "has-followups" : "",
     isBuildingPrompt ? "is-building" : ""
   ].filter(Boolean).join(" ");
+  const heroThemeStyle = getHeroThemeStyle(heroTheme);
 
   useEffect(() => {
     const storedProvider = readStoredProvider();
@@ -81,6 +84,12 @@ export default function Page() {
         throw caught;
       }
     }
+  }, []);
+
+  useEffect(() => {
+    const nextTheme = selectRandomHeroTheme();
+    setSplineReady(false);
+    setHeroTheme(nextTheme);
   }, []);
 
   const persistHistory = (entries: readonly PromptHistoryEntry[]) => {
@@ -262,7 +271,7 @@ export default function Page() {
   };
 
   return (
-    <main className={shellClassName}>
+    <main className={shellClassName} data-hero-theme={heroTheme.id} style={heroThemeStyle}>
       <header className="site-topbar">
         <div className="topbar-actions">
           {(rawQuestion || analysis || result) ? (
@@ -283,25 +292,14 @@ export default function Page() {
         </div>
       </header>
 
-      <section className="hero-stage" aria-label="첫 질문 입력">
-        <div className="spline-frame">
-          <iframe
-            title="NEXBOT robot animation"
-            src="https://my.spline.design/nexbotrobotcharacterconcept-Gzlk5cCKXuRUpeFXKYo5NQa8/"
-            frameBorder="0"
-            allow="autoplay; fullscreen; xr-spatial-tracking"
-            onLoad={() => setSplineReady(true)}
-            onError={() => setSplineReady(false)}
-            className={`spline-embed ${splineReady ? "spline-embed-ready" : ""}`}
-          />
-        </div>
-        {isFirstScreen ? <MatrixClickEffect /> : null}
-        {isFirstScreen ? (
-          <div className="hero-input-layer">
-            <QuestionInput rawQuestion={rawQuestion} error={error} loading={loading} onChange={setRawQuestion} onSubmit={analyze} />
-          </div>
-        ) : null}
-      </section>
+      <HeroStage
+        theme={heroTheme}
+        splineReady={splineReady}
+        isFirstScreen={isFirstScreen}
+        onSplineReadyChange={setSplineReady}
+      >
+        <QuestionInput rawQuestion={rawQuestion} error={error} loading={loading} onChange={setRawQuestion} onSubmit={analyze} />
+      </HeroStage>
 
       {loading ? <LoadingLayer mode={analysis ? "synthesize" : "analyze"} question={rawQuestion} /> : null}
 

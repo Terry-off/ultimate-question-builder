@@ -26,6 +26,7 @@ RealQuestion feels like a quiet AI console floating over a cinematic robot scene
 - Use cyan only for action, focus, selected state, and AI-processing signals.
 - Keep the page mostly neutral: black, glass gray, white, and cyan.
 - New colors must be added here before use.
+- Hero-specific palettes live in `lib/heroThemes.ts`. Each theme must keep dark glass panels and high-contrast text, even when the Spline scene is bright.
 
 ## 3. Typography
 
@@ -119,6 +120,14 @@ All spacing derives from 4px.
 - **States**: static asset, no interaction.
 - **Accessibility**: Open Graph image includes descriptive alt text.
 - **Motion**: none.
+
+### Hero Theme Set
+
+- **Structure**: one Spline URL plus one token set in `lib/heroThemes.ts`.
+- **Variants**: NEXBOT, Genku greeting robot, Magic lock, Zero gravity, Blue marble, Unchained, and Animated paper boat.
+- **States**: only `enabled: true` themes enter the random first-screen pool.
+- **Accessibility**: theme tokens must preserve readable white text over dark panels.
+- **Maintenance**: remove a broken theme by setting `enabled: false`; add a new theme by appending the same object shape with Spline URL and tokens.
 
 ### Result Refinement Panel
 

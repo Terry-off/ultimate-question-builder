@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Page from "@/app/page";
 import { STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
+import { HERO_THEMES } from "@/lib/heroThemes";
 
 describe("main page flow", () => {
   beforeEach(() => {
@@ -98,11 +99,30 @@ describe("main page flow", () => {
     }));
   });
 
+  it("randomizes the first-screen Spline hero and applies its theme tokens", async () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.999);
+
+    try {
+      render(<Page />);
+
+      const iframe = await screen.findByTitle("Animated paper boat hero animation");
+      const paperBoatTheme = HERO_THEMES.find((theme) => theme.id === "paper-boat");
+      const main = document.querySelector("main");
+
+      if (!paperBoatTheme) throw new Error("paper boat theme missing");
+      expect(iframe).toHaveAttribute("src", paperBoatTheme.splineUrl);
+      expect(main).toHaveAttribute("data-hero-theme", "paper-boat");
+      expect(main).toHaveStyle({ "--accent": "#ffdd9a" });
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
   it("lets a user enter a key, analyze a question, answer followups, and see results", async () => {
     const user = userEvent.setup();
     render(<Page />);
 
-    expect(screen.getByTitle("NEXBOT robot animation")).toBeInTheDocument();
+    expect(screen.getByTitle(/hero animation/)).toBeInTheDocument();
     expect(screen.queryByText("1. 질문 입력")).not.toBeInTheDocument();
     expect(screen.queryByText("Step 1")).not.toBeInTheDocument();
 

@@ -11,7 +11,7 @@ describe("hero robot wheel behavior", () => {
     const { container } = render(<Page />);
 
     const heroStage = screen.getByLabelText("첫 질문 입력");
-    const splineFrame = screen.getByTitle("NEXBOT robot animation").parentElement;
+    const splineFrame = screen.getByTitle(/hero animation/).parentElement;
     expect(container.querySelector(".robot-wheel-layer")).toBeNull();
     expect(splineFrame).not.toBeNull();
 
