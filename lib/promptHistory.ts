@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { modelProviderSchema } from "./types";
 import { directionSettingSchema, followupAnswerSchema, questionAnalysisSchema, ultimatePromptResultSchema } from "./types";
 import type { DirectionSetting, FollowupAnswer, QuestionAnalysis, UltimatePromptResult } from "./types";
 
@@ -8,7 +9,9 @@ const MAX_HISTORY_ITEMS = 20;
 export const promptHistorySnapshotSchema = z.object({
   analysis: questionAnalysisSchema,
   directionSettings: z.array(directionSettingSchema).min(1).max(3),
-  followupAnswers: z.array(followupAnswerSchema).length(6)
+  followupAnswers: z.array(followupAnswerSchema).length(6),
+  provider: modelProviderSchema.optional(),
+  model: z.string().trim().min(1).optional()
 });
 
 export const promptHistoryEntrySchema = promptHistorySnapshotSchema.extend({
@@ -32,6 +35,8 @@ type CreatePromptHistoryEntryInput = {
   readonly directionSettings: readonly DirectionSetting[];
   readonly followupAnswers: readonly FollowupAnswer[];
   readonly result: UltimatePromptResult;
+  readonly provider?: PromptHistoryEntry["provider"];
+  readonly model?: string;
   readonly previousEntry?: PromptHistoryEntry;
 };
 
@@ -70,6 +75,8 @@ export function createPromptHistoryEntry(input: CreatePromptHistoryEntryInput): 
     analysis: input.analysis,
     directionSettings: [...input.directionSettings],
     followupAnswers: [...input.followupAnswers],
+    provider: input.provider ?? input.previousEntry?.provider,
+    model: input.model ?? input.previousEntry?.model,
     result: input.result,
     createdAt: input.previousEntry?.createdAt ?? now,
     updatedAt: now

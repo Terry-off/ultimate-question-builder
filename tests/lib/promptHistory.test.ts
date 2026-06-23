@@ -64,6 +64,8 @@ describe("prompt history storage", () => {
       analysis,
       directionSettings,
       followupAnswers,
+      provider: "google",
+      model: "gemini-3.5-flash",
       result
     });
 
@@ -71,6 +73,8 @@ describe("prompt history storage", () => {
 
     expect(JSON.parse(localStorage.getItem(PROMPT_HISTORY_STORAGE_KEY) ?? "[]")).toHaveLength(1);
     expect(readPromptHistory(localStorage)[0]?.title).toContain("작은 카페");
+    expect(readPromptHistory(localStorage)[0]?.provider).toBe("google");
+    expect(readPromptHistory(localStorage)[0]?.model).toBe("gemini-3.5-flash");
   });
 
   it("updates existing entries and removes deleted entries", () => {

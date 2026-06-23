@@ -146,6 +146,35 @@ describe("synthesizeUltimatePrompt service", () => {
     expect(prompt).toContain("결과를 더 전문가답고 실행 순서가 보이게 바꿔줘.");
   });
 
+  it("accepts long edited prompts and compacts them before sending to the model", async () => {
+    const requestStructuredOutput = vi.fn().mockResolvedValue({
+      shortVersion: "긴 본문을 반영한 짧은 버전",
+      deepVersion: "긴 본문을 반영한 깊은 버전",
+      expertVersion: "긴 본문을 반영한 전문가 버전",
+      whyThisPromptIsStrong: ["긴 결과 본문을 막지 않고 다시 다듬는다."],
+      improvementSuggestions: []
+    });
+    const longEditedPrompt = `시작: 사용자가 직접 고친 본문입니다.\n${"중간 설명을 더 자세히 적습니다. ".repeat(650)}\n끝: 반드시 실행 순서를 더 자세하게 넣어야 합니다.`;
+
+    const result = await synthesizeUltimatePrompt({
+      ...validInput,
+      revision: {
+        selectedVersion: "deepVersion",
+        editedPrompt: longEditedPrompt,
+        feedback: "더 자세하게"
+      }
+    }, requestStructuredOutput);
+
+    expect(result.ok).toBe(true);
+    expect(requestStructuredOutput).toHaveBeenCalledTimes(1);
+    const prompt = requestStructuredOutput.mock.calls[0]?.[0].prompt;
+    expect(prompt).toContain("시작: 사용자가 직접 고친 본문입니다.");
+    expect(prompt).toContain("끝: 반드시 실행 순서를 더 자세하게 넣어야 합니다.");
+    expect(prompt).toContain("긴 내용");
+    expect(prompt).toContain("더 자세하게");
+    expect(prompt.length).toBeLessThan(longEditedPrompt.length + 4000);
+  });
+
   it("retries when a refinement repeats the selected prompt unchanged", async () => {
     const requestStructuredOutput = vi.fn()
       .mockResolvedValueOnce({

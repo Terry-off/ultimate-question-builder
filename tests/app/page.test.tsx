@@ -215,10 +215,10 @@ describe("main page flow", () => {
     expect(localStorage.getItem("ultimate-question-builder:openai-api-key")).toBe("sk-persisted");
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
-        "/api/api-key",
+        "/api/api-key?provider=openai",
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ apiKey: "sk-persisted" })
+          body: JSON.stringify({ provider: "openai", apiKey: "sk-persisted" })
         })
       )
     );
@@ -320,5 +320,29 @@ describe("main page flow", () => {
     await user.click(screen.getByRole("button", { name: /API 키/ }));
 
     expect(screen.getByLabelText("GPT 모델")).toHaveValue("gpt-5.5-pro");
+  });
+
+  it("stores provider-specific API keys and model preferences", async () => {
+    const user = userEvent.setup();
+    render(<Page />);
+
+    await user.click(screen.getByRole("button", { name: /API 키/ }));
+    await user.click(screen.getByRole("button", { name: "CLAUDE" }));
+    await user.selectOptions(screen.getByLabelText("CLAUDE 모델"), "claude-opus-4-8");
+    await user.type(screen.getByLabelText("Claude API 키"), "sk-ant-persisted");
+    await user.click(screen.getByRole("button", { name: "적용" }));
+
+    expect(localStorage.getItem("ultimate-question-builder:model-provider")).toBe("anthropic");
+    expect(localStorage.getItem("ultimate-question-builder:model:anthropic")).toBe("claude-opus-4-8");
+    expect(localStorage.getItem("ultimate-question-builder:api-key:anthropic")).toBe("sk-ant-persisted");
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/api-key?provider=anthropic",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ provider: "anthropic", apiKey: "sk-ant-persisted" })
+        })
+      )
+    );
   });
 });

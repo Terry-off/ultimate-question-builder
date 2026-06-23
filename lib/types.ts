@@ -1,12 +1,14 @@
 import { z } from "zod";
+import { DEFAULT_MODEL_BY_PROVIDER, DEFAULT_PROVIDER, MODEL_PROVIDER_IDS } from "./modelProviders";
 import { QUESTION_TYPES } from "./questionTypes";
 
 export const MAX_INPUT_LENGTH = 3000;
-export const DEFAULT_MODEL = "gpt-5.5";
+export const DEFAULT_MODEL = DEFAULT_MODEL_BY_PROVIDER[DEFAULT_PROVIDER];
 export const PROMPT_VERSION_IDS = ["shortVersion", "deepVersion", "expertVersion"] as const;
 
 export const questionTypeSchema = z.enum(QUESTION_TYPES);
 export const promptVersionIdSchema = z.enum(PROMPT_VERSION_IDS);
+export const modelProviderSchema = z.enum(MODEL_PROVIDER_IDS).default(DEFAULT_PROVIDER);
 
 const rawQuestionSchema = z
   .string()
@@ -76,13 +78,14 @@ export const ultimatePromptResultSchema = z.object({
 
 export const promptRevisionSchema = z.object({
   selectedVersion: promptVersionIdSchema,
-  editedPrompt: z.string().trim().min(1, "수정할 본문을 입력해주세요.").max(MAX_INPUT_LENGTH, "수정 본문은 3000자 이하로 입력해주세요."),
-  feedback: z.string().trim().min(1, "추가로 반영할 내용을 입력해주세요.").max(MAX_INPUT_LENGTH, "추가 의견은 3000자 이하로 입력해주세요.")
+  editedPrompt: z.string().trim().min(1, "수정할 본문을 입력해주세요."),
+  feedback: z.string().trim().min(1, "추가로 반영할 내용을 입력해주세요.")
 });
 
 export const analyzeQuestionRequestSchema = z.object({
   rawQuestion: rawQuestionSchema,
   apiKey: apiKeySchema,
+  provider: modelProviderSchema,
   model: modelSchema
 });
 
@@ -93,6 +96,7 @@ export const generateFollowupsRequestSchema = z.object({
 export const synthesizePromptRequestSchema = z.object({
   rawQuestion: rawQuestionSchema,
   apiKey: apiKeySchema,
+  provider: modelProviderSchema,
   model: modelSchema,
   analysis: questionAnalysisSchema,
   directionSettings: z.array(directionSettingSchema).min(1).max(3),

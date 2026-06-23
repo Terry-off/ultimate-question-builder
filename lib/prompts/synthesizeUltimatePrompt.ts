@@ -1,6 +1,25 @@
 import { QUESTION_TYPE_LABELS } from "../questionTypes";
 import type { DirectionSetting, FollowupAnswer, PromptRevision, QuestionAnalysis } from "../types";
 
+const MAX_REVISION_PROMPT_CHARS = 9000;
+const MAX_REVISION_FEEDBACK_CHARS = 5000;
+
+function compactLongRevisionText(value: string, maxChars: number) {
+  const text = value.trim();
+  if (text.length <= maxChars) return text;
+
+  const headLength = Math.floor(maxChars * 0.68);
+  const tailLength = maxChars - headLength;
+  const head = text.slice(0, headLength).trimEnd();
+  const tail = text.slice(-tailLength).trimStart();
+
+  return `${head}
+
+[긴 내용 ${text.length.toLocaleString("ko-KR")}자 중 중간 부분은 API가 안정적으로 다시 답변할 수 있도록 줄였습니다. 위 시작 부분과 아래 끝부분의 흐름을 기준으로 반영하세요.]
+
+${tail}`;
+}
+
 export function buildSynthesizeUltimatePrompt(input: {
   rawQuestion: string;
   analysis: QuestionAnalysis;
@@ -20,7 +39,14 @@ export function buildSynthesizeUltimatePrompt(input: {
     .map((item) => `- ${QUESTION_TYPE_LABELS[item.type]}: ${item.weight}/100 (${item.reason})`)
     .join("\n");
   const revision = input.revision
-    ? `\n\n사용자가 결과를 보고 추가로 남긴 의견:\n- 다시 다듬을 버전: ${input.revision.selectedVersion}\n- 사용자가 직접 수정한 현재 본문:\n${input.revision.editedPrompt}\n- 추가 의견:\n${input.revision.feedback}\n\n위 수정 본문을 새 기준점으로 삼고, 추가 의견을 반영해 세 가지 버전을 다시 작성하라.\n기존 본문을 그대로 반복하지 말고, 무엇이 바뀌었는지 사용자가 바로 느낄 만큼 구체적인 표현과 실행 조건을 새로 넣어라.`
+    ? {
+        selectedVersion: input.revision.selectedVersion,
+        editedPrompt: compactLongRevisionText(input.revision.editedPrompt, MAX_REVISION_PROMPT_CHARS),
+        feedback: compactLongRevisionText(input.revision.feedback, MAX_REVISION_FEEDBACK_CHARS)
+      }
+    : undefined;
+  const revisionText = revision
+    ? `\n\n사용자가 결과를 보고 추가로 남긴 의견:\n- 다시 다듬을 버전: ${revision.selectedVersion}\n- 사용자가 직접 수정한 현재 본문:\n${revision.editedPrompt}\n- 추가 의견:\n${revision.feedback}\n\n위 수정 본문을 새 기준점으로 삼고, 추가 의견을 반영해 세 가지 버전을 다시 작성하라.\n기존 본문을 그대로 반복하지 말고, 무엇이 바뀌었는지 사용자가 바로 느낄 만큼 구체적인 표현과 실행 조건을 새로 넣어라.`
     : "";
 
   return `너는 사용자의 평범한 질문을 AI가 깊게 사고할 수밖에 없는 궁극 질문 프롬프트로 재설계한다.
@@ -38,7 +64,7 @@ ${input.rawQuestion}
 ${directionSettings}
 
 사용자의 후속 답변:
-${answers}${revision}
+${answers}${revisionText}
 
 반드시 세 가지 버전을 생성하라.
 1. shortVersion: 빠르게 복사해서 쓸 수 있는 버전

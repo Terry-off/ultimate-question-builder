@@ -8,7 +8,16 @@ describe("ApiKeyMenu", () => {
     const user = userEvent.setup();
     const onApiKeyChange = vi.fn();
 
-    render(<ApiKeyMenu apiKey="" model="gpt-5.5" onApiKeyChange={onApiKeyChange} onModelChange={vi.fn()} />);
+    render(
+      <ApiKeyMenu
+        apiKey=""
+        provider="openai"
+        model="gpt-5.5"
+        onProviderChange={vi.fn()}
+        onApiKeyChange={onApiKeyChange}
+        onModelChange={vi.fn()}
+      />
+    );
 
     await user.click(screen.getByRole("button", { name: /API 키/ }));
     await user.type(screen.getByLabelText("OpenAI API 키"), "sk-secret");
@@ -22,7 +31,16 @@ describe("ApiKeyMenu", () => {
     const user = userEvent.setup();
     const onApiKeyChange = vi.fn();
 
-    render(<ApiKeyMenu apiKey="sk-existing" model="gpt-5.5" onApiKeyChange={onApiKeyChange} onModelChange={vi.fn()} />);
+    render(
+      <ApiKeyMenu
+        apiKey="sk-existing"
+        provider="openai"
+        model="gpt-5.5"
+        onProviderChange={vi.fn()}
+        onApiKeyChange={onApiKeyChange}
+        onModelChange={vi.fn()}
+      />
+    );
 
     await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
     expect(screen.getByPlaceholderText("API키는 사용자의 로컬에 독립 저장됩니다.")).toBeInTheDocument();
@@ -35,7 +53,16 @@ describe("ApiKeyMenu", () => {
     const user = userEvent.setup();
     const onModelChange = vi.fn();
 
-    render(<ApiKeyMenu apiKey="sk-existing" model="gpt-5.5" onApiKeyChange={vi.fn()} onModelChange={onModelChange} />);
+    render(
+      <ApiKeyMenu
+        apiKey="sk-existing"
+        provider="openai"
+        model="gpt-5.5"
+        onProviderChange={vi.fn()}
+        onApiKeyChange={vi.fn()}
+        onModelChange={onModelChange}
+      />
+    );
 
     await user.click(screen.getByRole("button", { name: /API 키 설정됨/ }));
     await user.selectOptions(screen.getByLabelText("GPT 모델"), "gpt-5.5-pro");
@@ -43,12 +70,40 @@ describe("ApiKeyMenu", () => {
     expect(onModelChange).toHaveBeenCalledWith("gpt-5.5-pro");
   });
 
+  it("lets users switch provider before choosing the model key", async () => {
+    const user = userEvent.setup();
+    const onProviderChange = vi.fn();
+
+    render(
+      <ApiKeyMenu
+        apiKey=""
+        provider="openai"
+        model="gpt-5.5"
+        onProviderChange={onProviderChange}
+        onApiKeyChange={vi.fn()}
+        onModelChange={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /API 키/ }));
+    await user.click(screen.getByRole("button", { name: "CLAUDE" }));
+
+    expect(onProviderChange).toHaveBeenCalledWith("anthropic");
+  });
+
   it("closes the popover when users click outside", async () => {
     const user = userEvent.setup();
 
     render(
       <>
-        <ApiKeyMenu apiKey="sk-existing" model="gpt-5.5" onApiKeyChange={vi.fn()} onModelChange={vi.fn()} />
+        <ApiKeyMenu
+          apiKey="sk-existing"
+          provider="openai"
+          model="gpt-5.5"
+          onProviderChange={vi.fn()}
+          onApiKeyChange={vi.fn()}
+          onModelChange={vi.fn()}
+        />
         <button type="button">바깥 영역</button>
       </>
     );

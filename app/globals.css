@@ -1003,13 +1003,105 @@ button:disabled {
   min-height: 38px;
 }
 
+.result-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 40px;
+  padding-right: 74px;
+}
+
+.result-model-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid rgba(114, 247, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(114, 247, 255, 0.1);
+  color: rgba(235, 255, 255, 0.92);
+  padding: 0 13px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.source-toggle {
+  min-height: 34px;
+  padding-inline: 12px;
+  font-size: 12px;
+}
+
+.source-panel {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 10px;
+  overflow: auto;
+  max-height: min(28dvh, 260px);
+  border: 1px solid rgba(114, 247, 255, 0.2);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.055);
+  padding: 12px;
+  scrollbar-width: none;
+}
+
+.source-panel::-webkit-scrollbar {
+  display: none;
+}
+
+.source-grid {
+  display: grid;
+  grid-template-columns: 1.22fr 0.78fr;
+  gap: 10px;
+}
+
+.source-block {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.22);
+  padding: 11px;
+}
+
+.source-block strong {
+  display: block;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.source-block p,
+.source-block ul {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.source-block ul {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.source-block li {
+  display: grid;
+  gap: 2px;
+}
+
+.source-block em {
+  color: #ffffff;
+  font-style: normal;
+}
+
 .result-content {
   flex: 1 1 auto;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 14px;
   min-height: 0;
-  padding-top: 40px;
+  padding-top: 0;
 }
 
 .result-content h2 {
@@ -1282,6 +1374,30 @@ button:disabled {
   min-height: 44px;
   margin-top: 8px;
   padding: 0 13px;
+}
+
+.provider-segment {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 8px 0 14px;
+}
+
+.provider-option {
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+  font-weight: 900;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.provider-option-active {
+  border-color: rgba(114, 247, 255, 0.66);
+  background: rgba(114, 247, 255, 0.16);
+  color: #ffffff;
 }
 
 .api-key-input::placeholder {
@@ -1804,22 +1920,28 @@ select.api-input option {
   .spline-frame::before {
     z-index: 2;
     background:
-      radial-gradient(ellipse at 50% 31%, rgba(238, 245, 246, 0.52), transparent 22%),
-      radial-gradient(ellipse at 50% 57%, rgba(121, 238, 244, 0.18), transparent 33%),
-      radial-gradient(ellipse at 50% 49%, rgba(216, 222, 222, 0.78), transparent 18%),
-      linear-gradient(90deg, rgba(13, 16, 19, 0.42), rgba(211, 216, 216, 0.7) 34%, rgba(211, 216, 216, 0.7) 66%, rgba(13, 16, 19, 0.42));
+      radial-gradient(ellipse at 50% 31%, rgba(238, 245, 246, 0.24), transparent 24%),
+      radial-gradient(ellipse at 50% 57%, rgba(121, 238, 244, 0.12), transparent 34%),
+      radial-gradient(ellipse at 50% 49%, rgba(216, 222, 222, 0.28), transparent 20%),
+      linear-gradient(90deg, rgba(13, 16, 19, 0.34), rgba(211, 216, 216, 0.22) 36%, rgba(211, 216, 216, 0.22) 64%, rgba(13, 16, 19, 0.34));
   }
 
   .spline-frame::after {
     z-index: 3;
     background:
-      radial-gradient(circle at 10% 96%, rgba(12, 15, 18, 0.96) 0 46px, transparent 58px),
-      linear-gradient(90deg, rgba(6, 8, 11, 0.48), transparent 22%, transparent 72%, rgba(6, 8, 11, 0.46)),
-      linear-gradient(180deg, rgba(6, 8, 11, 0.1), transparent 34%, rgba(6, 8, 11, 0.72));
+      radial-gradient(circle at 10% 96%, rgba(12, 15, 18, 0.72) 0 46px, transparent 58px),
+      linear-gradient(90deg, rgba(6, 8, 11, 0.44), transparent 22%, transparent 72%, rgba(6, 8, 11, 0.42)),
+      linear-gradient(180deg, rgba(6, 8, 11, 0.04), transparent 38%, rgba(6, 8, 11, 0.62));
+  }
+
+  .spline-embed {
+    left: 50%;
+    width: max(100%, 680px);
+    transform: translateX(-50%);
   }
 
   .spline-embed-ready {
-    opacity: 0.36;
+    opacity: 0.78;
   }
 
   .followup-dock {
@@ -1830,11 +1952,16 @@ select.api-input option {
   .followup-console {
     gap: 10px;
     border-radius: 24px;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(114, 247, 255, 0.05)),
+      rgba(8, 12, 16, 0.7);
     padding: 12px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
   }
 
   .tuning-panel {
     border-radius: 20px;
+    background: rgba(10, 16, 20, 0.58);
     padding: 10px;
   }
 
@@ -1843,8 +1970,34 @@ select.api-input option {
   }
 
   .tuning-row {
+    min-width: 0;
     border-radius: 14px;
-    padding: 8px 10px;
+    padding: 8px 9px;
+  }
+
+  .tuning-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .tuning-row > span {
+    min-width: 0;
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .tuning-row > span > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tuning-range {
+    margin-top: 5px;
   }
 
   .question-signal-list {
@@ -1855,6 +2008,7 @@ select.api-input option {
   .signal-panel {
     min-height: auto;
     border-radius: 20px;
+    background: rgba(9, 13, 17, 0.64);
     padding: 12px;
   }
 
@@ -1872,6 +2026,7 @@ select.api-input option {
   .choice-chip {
     min-height: 42px;
     border-radius: 13px;
+    background: rgba(0, 0, 0, 0.34);
     padding: 8px 9px;
     font-size: 12px;
   }
@@ -1901,6 +2056,7 @@ select.api-input option {
     background:
       linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
       rgba(7, 10, 14, 0.96);
+    gap: 10px;
     padding: 14px;
   }
 
@@ -1910,11 +2066,48 @@ select.api-input option {
     right: 12px;
   }
 
+  .result-meta-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 0;
+    padding-top: 38px;
+    padding-right: 0;
+  }
+
+  .result-model-badge,
+  .source-toggle {
+    justify-content: center;
+    width: 100%;
+    min-height: 34px;
+    font-size: 11px;
+  }
+
+  .source-panel {
+    max-height: 22dvh;
+    border-radius: 18px;
+    padding: 10px;
+  }
+
+  .source-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .source-block {
+    padding: 9px;
+  }
+
+  .source-block p,
+  .source-block ul {
+    font-size: 11px;
+  }
+
   .result-content {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-height: 0;
     gap: 10px;
-    padding-top: 48px;
+    grid-template-rows: auto auto auto;
+    padding-top: 0;
   }
 
   .result-content h2 {
@@ -1924,16 +2117,22 @@ select.api-input option {
 
   .result-tabs {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
 
   .result-tab {
     min-height: 38px;
-    font-size: 12px;
+    padding: 0 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
   }
 
   .prompt-panel {
     min-height: 0;
+    max-height: 43dvh;
     border-radius: 20px;
     padding: 12px;
   }
@@ -1944,8 +2143,9 @@ select.api-input option {
   }
 
   .prompt-output {
-    min-height: min(180px, 24dvh);
-    max-height: 26dvh;
+    height: clamp(210px, 33dvh, 310px);
+    min-height: 0;
+    max-height: none;
     border-radius: 16px;
     padding: 12px;
     font-size: 13px;
@@ -1959,7 +2159,7 @@ select.api-input option {
   .result-refine-panel {
     flex: 0 0 auto;
     border-radius: 18px;
-    padding: 10px;
+    padding: 9px 10px;
   }
 
   .result-edit-row {
@@ -1972,7 +2172,7 @@ select.api-input option {
   }
 
   .revision-input {
-    min-height: 54px;
+    min-height: 48px;
     border-radius: 16px;
     font-size: 12px;
   }

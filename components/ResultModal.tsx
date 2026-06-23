@@ -1,14 +1,24 @@
 "use client";
 
-import { PencilLine, RefreshCw } from "lucide-react";
+import { Eye, PencilLine, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { PromptRevision, PromptVersionId, UltimatePromptResult } from "@/lib/types";
+import { DEFAULT_PROVIDER, getModelLabel, getProviderLabel, type ModelProviderId } from "@/lib/modelProviders";
+import { QUESTION_TYPE_LABELS } from "@/lib/questionTypes";
+import type { DirectionSetting, FollowupAnswer, PromptRevision, PromptVersionId, UltimatePromptResult } from "@/lib/types";
 import { createEditablePromptMap, type EditablePromptMap, ResultTabs } from "./ResultTabs";
 
 export type ResultRefineRequest = PromptRevision;
+export type ResultSourceSummary = {
+  readonly rawQuestion: string;
+  readonly directionSettings: readonly DirectionSetting[];
+  readonly followupAnswers: readonly FollowupAnswer[];
+  readonly provider?: ModelProviderId;
+  readonly model?: string;
+};
 
 type ResultModalProps = {
   readonly result: UltimatePromptResult;
+  readonly source?: ResultSourceSummary;
   readonly loading: boolean;
   readonly error?: string;
   readonly onBackToFollowups: () => void;
@@ -16,16 +26,22 @@ type ResultModalProps = {
   readonly onRefine: (request: ResultRefineRequest) => void;
 };
 
-export function ResultModal({ result, loading, error, onBackToFollowups, onReset, onRefine }: ResultModalProps) {
+export function ResultModal({ result, source, loading, error, onBackToFollowups, onReset, onRefine }: ResultModalProps) {
   const [activeVersion, setActiveVersion] = useState<PromptVersionId>("deepVersion");
   const [editable, setEditable] = useState(false);
+  const [sourceOpen, setSourceOpen] = useState(false);
   const [editedPrompts, setEditedPrompts] = useState<EditablePromptMap>(() => createEditablePromptMap(result));
   const [feedback, setFeedback] = useState("");
   const canRefine = feedback.trim().length > 0 && editedPrompts[activeVersion].trim().length > 0 && !loading;
+  const provider = source?.provider ?? DEFAULT_PROVIDER;
+  const model = source?.model;
+  const providerLabel = getProviderLabel(provider);
+  const modelLabel = getModelLabel(provider, model);
 
   useEffect(() => {
     setActiveVersion("deepVersion");
     setEditable(false);
+    setSourceOpen(false);
     setEditedPrompts(createEditablePromptMap(result));
     setFeedback("");
   }, [result]);
@@ -50,6 +66,44 @@ export function ResultModal({ result, loading, error, onBackToFollowups, onReset
         <button type="button" onClick={onReset} className="modal-close">
           닫기
         </button>
+        <div className="result-meta-row">
+          <span className="result-model-badge">{providerLabel} · {modelLabel}</span>
+          {source ? (
+            <button type="button" onClick={() => setSourceOpen((current) => !current)} className="ghost-action ghost-action-dark source-toggle">
+              <Eye size={15} aria-hidden="true" />
+              처음 질문 보기
+            </button>
+          ) : null}
+        </div>
+        {source && sourceOpen ? (
+          <section className="source-panel" aria-label="처음 질문과 선택한 답변">
+            <div className="source-block">
+              <strong>처음 질문</strong>
+              <p>{source.rawQuestion}</p>
+            </div>
+            <div className="source-grid">
+              <div className="source-block">
+                <strong>2차 질문 선택</strong>
+                <ul>
+                  {source.followupAnswers.map((item) => (
+                    <li key={item.id}>
+                      <span>{item.question}</span>
+                      <em>{item.answer || "선택 없음"}</em>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="source-block">
+                <strong>방향</strong>
+                <ul>
+                  {source.directionSettings.map((item) => (
+                    <li key={item.type}>{QUESTION_TYPE_LABELS[item.type]} {item.weight}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+        ) : null}
         <ResultTabs
           result={result}
           editable={editable}

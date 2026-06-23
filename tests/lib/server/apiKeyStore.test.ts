@@ -50,4 +50,20 @@ describe("apiKeyStore", () => {
     await expect(resolveStoredApiKey({ apiKey: " sk-new " })).resolves.toMatchObject({ apiKey: "sk-new" });
     expect(await readPersistedApiKey()).toBe("sk-new");
   });
+
+  it("stores API keys separately by provider", async () => {
+    await writePersistedApiKey("sk-openai", "openai");
+    await writePersistedApiKey("sk-ant-test", "anthropic");
+
+    expect(await readPersistedApiKey("openai")).toBe("sk-openai");
+    expect(await readPersistedApiKey("anthropic")).toBe("sk-ant-test");
+    await expect(resolveStoredApiKey({ provider: "anthropic", apiKey: STORED_API_KEY_SENTINEL })).resolves.toMatchObject({
+      provider: "anthropic",
+      apiKey: "sk-ant-test"
+    });
+
+    await clearPersistedApiKey("anthropic");
+    expect(await readPersistedApiKey("anthropic")).toBe("");
+    expect(await readPersistedApiKey("openai")).toBe("sk-openai");
+  });
 });

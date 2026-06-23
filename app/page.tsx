@@ -11,7 +11,8 @@ import { ResultModal, type ResultRefineRequest } from "@/components/ResultModal"
 import { STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
 import { readServerApiKeyState, readStoredApiKey, saveServerApiKey, saveStoredApiKey } from "@/lib/clientApiKey";
 import { createDirectionSettings } from "@/lib/directionSettings";
-import { readStoredModel, saveStoredModel } from "@/lib/modelPreference";
+import { readStoredModel, readStoredProvider, saveStoredModel, saveStoredProvider } from "@/lib/modelPreference";
+import { DEFAULT_PROVIDER, PROVIDER_API_KEY_LABELS, getDefaultModelForProvider, type ModelProviderId } from "@/lib/modelProviders";
 import { postJson } from "@/lib/postJson";
 import { createPromptHistoryEntry, readPromptHistory, removePromptHistoryEntry, upsertPromptHistory, writePromptHistory, type PromptHistoryEntry, type PromptHistorySnapshot } from "@/lib/promptHistory";
 import { DEFAULT_MODEL, questionAnalysisSchema, ultimatePromptResultSchema, type DirectionSetting, type FollowupAnswer, type FollowupQuestion, type QuestionAnalysis, type UltimatePromptResult } from "@/lib/types";
@@ -24,6 +25,7 @@ type SynthesizeInput = {
 };
 
 export default function Page() {
+  const [provider, setProvider] = useState<ModelProviderId>(DEFAULT_PROVIDER);
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(DEFAULT_MODEL);
   const [splineReady, setSplineReady] = useState(false);
@@ -49,15 +51,18 @@ export default function Page() {
   ].filter(Boolean).join(" ");
 
   useEffect(() => {
-    setModel(readStoredModel());
+    const storedProvider = readStoredProvider();
+    const storedModel = readStoredModel(storedProvider);
+    setProvider(storedProvider);
+    setModel(storedModel);
 
-    const storedApiKey = readStoredApiKey();
+    const storedApiKey = readStoredApiKey(storedProvider);
     if (storedApiKey) {
       setApiKey(storedApiKey);
       setError(undefined);
-      void saveServerApiKey(storedApiKey).catch(() => undefined);
+      void saveServerApiKey(storedProvider, storedApiKey).catch(() => undefined);
     } else {
-      void readServerApiKeyState()
+      void readServerApiKeyState(storedProvider)
         .then((hasApiKey) => {
           if (hasApiKey) {
             setApiKey(STORED_API_KEY_SENTINEL);
@@ -91,9 +96,35 @@ export default function Page() {
   const updateApiKey = (value: string) => {
     const nextApiKey = value.trim();
     setApiKey(nextApiKey);
-    saveStoredApiKey(nextApiKey);
-    void saveServerApiKey(nextApiKey).catch(() => undefined);
+    saveStoredApiKey(provider, nextApiKey);
+    void saveServerApiKey(provider, nextApiKey).catch(() => undefined);
     if (nextApiKey) setError(undefined);
+  };
+
+  const updateProvider = (value: ModelProviderId) => {
+    const nextModel = readStoredModel(value);
+    setProvider(value);
+    setModel(nextModel);
+    saveStoredProvider(value);
+    const storedApiKey = readStoredApiKey(value);
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+      setError(undefined);
+      void saveServerApiKey(value, storedApiKey).catch(() => undefined);
+      return;
+    }
+
+    setApiKey("");
+    void readServerApiKeyState(value)
+      .then((hasApiKey) => {
+        if (hasApiKey) setApiKey(STORED_API_KEY_SENTINEL);
+      })
+      .catch(() => undefined);
+  };
+
+  const updateModel = (value: string) => {
+    setModel(value);
+    saveStoredModel(provider, value);
   };
 
   const saveResultHistory = (resultData: UltimatePromptResult, snapshot: PromptHistorySnapshot) => {
@@ -105,6 +136,8 @@ export default function Page() {
       analysis: snapshot.analysis,
       directionSettings: snapshot.directionSettings,
       followupAnswers: snapshot.followupAnswers,
+      provider: snapshot.provider,
+      model: snapshot.model,
       result: resultData
     });
     setActiveHistoryId(historyEntry.id);
@@ -113,7 +146,7 @@ export default function Page() {
 
   const analyze = async () => {
     if (!apiKey) {
-      setError("OpenAI API 키를 먼저 입력해주세요.");
+      setError(`${PROVIDER_API_KEY_LABELS[provider]}를 먼저 입력해주세요.`);
       return;
     }
 
@@ -121,7 +154,7 @@ export default function Page() {
     setError(undefined);
     setLoading(true);
     try {
-      const data = questionAnalysisSchema.parse(await postJson("/api/analyze-question", { rawQuestion, apiKey, model }));
+      const data = questionAnalysisSchema.parse(await postJson("/api/analyze-question", { rawQuestion, apiKey, provider, model }));
       setAnalysis(data);
       setDirectionSettings(createDirectionSettings(data));
       setFollowupQuestions(data.followupQuestions);
@@ -136,11 +169,19 @@ export default function Page() {
     const requestAnalysis = sourceAnalysis ?? analysis;
     if (!requestAnalysis) return;
     if (!apiKey) {
-      setError("OpenAI API 키를 먼저 입력해주세요.");
+      setError(`${PROVIDER_API_KEY_LABELS[provider]}를 먼저 입력해주세요.`);
       return;
     }
 
-    const snapshot = { analysis: requestAnalysis, directionSettings: settings, followupAnswers: answers };
+    const requestProvider = provider;
+    const requestModel = model;
+    const snapshot = {
+      analysis: requestAnalysis,
+      directionSettings: settings,
+      followupAnswers: answers,
+      provider: requestProvider,
+      model: requestModel
+    };
     setDirectionSettings(settings);
     setAnswerDrafts(Object.fromEntries(answers.map((item) => [item.id, item.answer])));
     setLastPromptSnapshot(snapshot);
@@ -150,7 +191,8 @@ export default function Page() {
       const data = ultimatePromptResultSchema.parse(await postJson("/api/synthesize-ultimate-prompt", {
         rawQuestion,
         apiKey,
-        model,
+        provider: requestProvider,
+        model: requestModel,
         analysis: requestAnalysis,
         directionSettings: settings,
         followupAnswers: answers,
@@ -179,6 +221,19 @@ export default function Page() {
 
   const selectHistoryEntry = (entry: PromptHistoryEntry) => {
     setRawQuestion(entry.rawQuestion);
+    const entryProvider = entry.provider ?? DEFAULT_PROVIDER;
+    const entryModel = entry.model ?? getDefaultModelForProvider(entryProvider);
+    setProvider(entryProvider);
+    setModel(entryModel);
+    const entryApiKey = readStoredApiKey(entryProvider);
+    setApiKey(entryApiKey);
+    if (!entryApiKey) {
+      void readServerApiKeyState(entryProvider)
+        .then((hasApiKey) => {
+          if (hasApiKey) setApiKey(STORED_API_KEY_SENTINEL);
+        })
+        .catch(() => undefined);
+    }
     setAnalysis(entry.analysis);
     setDirectionSettings(entry.directionSettings);
     setFollowupQuestions(entry.analysis.followupQuestions);
@@ -187,7 +242,9 @@ export default function Page() {
     setLastPromptSnapshot({
       analysis: entry.analysis,
       directionSettings: entry.directionSettings,
-      followupAnswers: entry.followupAnswers
+      followupAnswers: entry.followupAnswers,
+      provider: entryProvider,
+      model: entryModel
     });
     setActiveHistoryId(entry.id);
     setError(undefined);
@@ -208,7 +265,14 @@ export default function Page() {
             </button>
           ) : null}
           <HistoryMenu entries={promptHistory} activeId={activeHistoryId} onSelect={selectHistoryEntry} onDelete={deleteHistoryEntry} />
-          <ApiKeyMenu apiKey={apiKey} model={model} onApiKeyChange={updateApiKey} onModelChange={(value) => { setModel(value); saveStoredModel(value); }} />
+          <ApiKeyMenu
+            apiKey={apiKey}
+            provider={provider}
+            model={model}
+            onProviderChange={updateProvider}
+            onApiKeyChange={updateApiKey}
+            onModelChange={updateModel}
+          />
         </div>
       </header>
 
@@ -250,6 +314,13 @@ export default function Page() {
       {result ? (
         <ResultModal
           result={result}
+          source={lastPromptSnapshot ? {
+            rawQuestion,
+            directionSettings: lastPromptSnapshot.directionSettings,
+            followupAnswers: lastPromptSnapshot.followupAnswers,
+            provider: lastPromptSnapshot.provider,
+            model: lastPromptSnapshot.model
+          } : undefined}
           loading={loading}
           error={error}
           onBackToFollowups={() => setResult(null)}

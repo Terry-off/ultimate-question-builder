@@ -3,7 +3,7 @@ import { ultimatePromptResultJsonSchema } from "../openaiSchemas";
 import { buildSynthesizeUltimatePrompt } from "../prompts/synthesizeUltimatePrompt";
 import { buildImprovementSuggestions, calculateQualityScore } from "../qualityScore";
 import { synthesizePromptRequestSchema, ultimatePromptResultSchema, type PromptRevision, type UltimatePromptResult } from "../types";
-import { getOpenAIRequestError } from "./openaiError";
+import { getModelRequestError } from "./openaiError";
 
 type ServiceResult<T> = { ok: true; data: T } | { ok: false; error: string; status: number };
 type StructuredRequester = (input: RequestStructuredOutputInput<any>) => Promise<any>;
@@ -42,6 +42,7 @@ export async function synthesizeUltimatePrompt(
     try {
       const modelResult = await structuredRequester({
         apiKey: request.apiKey,
+        provider: request.provider,
         model: request.model,
         prompt: attempt === 0 ? prompt : `${prompt}\n\n${retryInstructions[retryReason]}`,
         schemaName: "ultimate_prompt_result",
@@ -70,8 +71,8 @@ export async function synthesizeUltimatePrompt(
         }
       };
     } catch (caught) {
-      const openAIError = getOpenAIRequestError(caught);
-      if (openAIError) return { ok: false, ...openAIError };
+      const modelError = getModelRequestError(caught, request.provider);
+      if (modelError) return { ok: false, ...modelError };
       if (!(caught instanceof Error)) throw caught;
       retryReason = "invalid_output";
       continue;

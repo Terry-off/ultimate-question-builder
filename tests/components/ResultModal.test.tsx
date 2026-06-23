@@ -74,4 +74,37 @@ describe("ResultModal", () => {
     expect(action).toHaveClass("is-refining");
     expect(action).toHaveAttribute("aria-busy", "true");
   });
+
+  it("shows the generation model and original question context", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <ResultModal
+        result={result}
+        source={{
+          rawQuestion: "처음 입력한 질문입니다.",
+          provider: "anthropic",
+          model: "claude-opus-4-8",
+          directionSettings: [{ type: "strategy_business", reason: "사업 방향", weight: 80 }],
+          followupAnswers: [{
+            id: "target",
+            purpose: "대상",
+            question: "누구에게 필요한가요?",
+            answer: "중학생"
+          }]
+        }}
+        loading={false}
+        onBackToFollowups={vi.fn()}
+        onReset={vi.fn()}
+        onRefine={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("CLAUDE · Claude Opus 4.8")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "처음 질문 보기" }));
+
+    expect(screen.getByText("처음 입력한 질문입니다.")).toBeInTheDocument();
+    expect(screen.getByText("누구에게 필요한가요?")).toBeInTheDocument();
+    expect(screen.getByText("중학생")).toBeInTheDocument();
+  });
 });

@@ -2,7 +2,7 @@ import { requestStructuredOutput, type RequestStructuredOutputInput } from "../l
 import { questionAnalysisJsonSchema } from "../openaiSchemas";
 import { buildAnalyzeQuestionPrompt } from "../prompts/analyzeQuestion";
 import { analyzeQuestionRequestSchema, questionAnalysisSchema, type AnalyzeQuestionRequest, type QuestionAnalysis } from "../types";
-import { getOpenAIRequestError } from "./openaiError";
+import { getModelRequestError } from "./openaiError";
 
 type ServiceResult<T> = { ok: true; data: T } | { ok: false; error: string; status: number };
 type StructuredRequester = (input: RequestStructuredOutputInput<any>) => Promise<any>;
@@ -84,6 +84,7 @@ export async function analyzeQuestion(
     try {
       const data = await structuredRequester({
         apiKey: request.apiKey,
+        provider: request.provider,
         model: request.model,
         prompt: attempt === 0 ? prompt : `${prompt}\n\n이전 응답은 유효한 JSON이 아니었다. 스키마에 맞는 JSON만 출력하라.`,
         schemaName: "question_analysis",
@@ -92,8 +93,8 @@ export async function analyzeQuestion(
       });
       return { ok: true, data };
     } catch (caught) {
-      const openAIError = getOpenAIRequestError(caught);
-      if (openAIError) return { ok: false, ...openAIError };
+      const modelError = getModelRequestError(caught, request.provider);
+      if (modelError) return { ok: false, ...modelError };
       continue;
     }
   }
