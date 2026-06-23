@@ -1,7 +1,7 @@
 "use client";
 
 import { History, Trash2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PromptHistoryEntry } from "@/lib/promptHistory";
 import { MenuDismissLayer } from "./MenuDismissLayer";
 import { useOutsideDismiss } from "./useOutsideDismiss";
@@ -28,14 +28,30 @@ const formatHistoryDate = (value: string) => {
 export function HistoryMenu({ entries, activeId, onSelect, onDelete }: HistoryMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [seenEntryCount, setSeenEntryCount] = useState(0);
+  const unseenEntryCount = Math.max(entries.length - seenEntryCount, 0);
   useOutsideDismiss(menuRef, open, () => setOpen(false));
+
+  useEffect(() => {
+    setSeenEntryCount((current) => Math.min(current, entries.length));
+  }, [entries.length]);
+
+  const handleToggleHistory = () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+
+    setSeenEntryCount(entries.length);
+    setOpen(true);
+  };
 
   return (
     <div ref={menuRef} className="history-menu">
-      <button type="button" onClick={() => setOpen((value) => !value)} className="topbar-button">
+      <button type="button" onClick={handleToggleHistory} className="topbar-button">
         <History size={16} />
         히스토리
-        {entries.length > 0 ? <span className="history-count">{entries.length}</span> : null}
+        {unseenEntryCount > 0 ? <span className="history-count">{unseenEntryCount}</span> : null}
       </button>
       {open ? (
         <>
