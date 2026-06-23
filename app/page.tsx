@@ -251,10 +251,11 @@ export default function Page() {
         <ResultModal
           result={result}
           loading={loading}
+          error={error}
           onBackToFollowups={() => setResult(null)}
           onReset={reset}
           onRefine={(revision) => {
-            if (!lastPromptSnapshot) return;
+            if (!lastPromptSnapshot) return setError("이전 질문 정보가 없어 다시 답변할 수 없습니다. 이전 질문 선택을 다시 해주세요.");
             void synthesize({
               answers: lastPromptSnapshot.followupAnswers,
               settings: lastPromptSnapshot.directionSettings,

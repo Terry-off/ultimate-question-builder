@@ -105,6 +105,44 @@ describe("page history and result refinement", () => {
     expect(localStorage.getItem(PROMPT_HISTORY_STORAGE_KEY)).toContain("수정된 깊은 질문");
   });
 
+  it("shows the refinement API error inside the result screen", async () => {
+    const synthesizeBodies: string[] = [];
+    setupFetch(synthesizeBodies);
+    const user = await createFirstResult();
+
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = input.toString();
+      const body = typeof init?.body === "string" ? init.body : "";
+
+      if (url.includes("/api/synthesize-ultimate-prompt") && body.includes("\"revision\"")) {
+        synthesizeBodies.push(body);
+        return new Response(JSON.stringify({ error: "수정 의견을 반영하지 못했습니다." }), { status: 502 });
+      }
+
+      if (url.includes("/api/synthesize-ultimate-prompt")) {
+        synthesizeBodies.push(body);
+        return new Response(JSON.stringify(createResult("처음 깊은 질문")), { status: 200 });
+      }
+
+      if (url.includes("/api/api-key")) {
+        return new Response(JSON.stringify({ hasApiKey: false }), { status: 200 });
+      }
+
+      if (url.includes("/api/analyze-question")) {
+        return new Response(JSON.stringify(analysis), { status: 200 });
+      }
+
+      return new Response(JSON.stringify({ error: "not found" }), { status: 404 });
+    });
+
+    await user.type(screen.getByLabelText("결과를 보고 추가로 반영할 내용"), "현실적으로 바로 만들 수 있게 다시 써줘.");
+    await user.click(screen.getByRole("button", { name: "다시 답변 받기" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("수정 의견을 반영하지 못했습니다.");
+    expect(screen.getByText("처음 깊은 질문")).toBeInTheDocument();
+    expect(synthesizeBodies.some((body) => body.includes("\"revision\""))).toBe(true);
+  });
+
   it("restores saved questions from the history menu", async () => {
     const synthesizeBodies: string[] = [];
     setupFetch(synthesizeBodies);

@@ -20,7 +20,7 @@ export function buildSynthesizeUltimatePrompt(input: {
     .map((item) => `- ${QUESTION_TYPE_LABELS[item.type]}: ${item.weight}/100 (${item.reason})`)
     .join("\n");
   const revision = input.revision
-    ? `\n\n사용자가 결과를 보고 추가로 남긴 의견:\n- 다시 다듬을 버전: ${input.revision.selectedVersion}\n- 사용자가 직접 수정한 현재 본문:\n${input.revision.editedPrompt}\n- 추가 의견:\n${input.revision.feedback}\n\n위 수정 본문을 새 기준점으로 삼고, 추가 의견을 반영해 세 가지 버전을 다시 작성하라.`
+    ? `\n\n사용자가 결과를 보고 추가로 남긴 의견:\n- 다시 다듬을 버전: ${input.revision.selectedVersion}\n- 사용자가 직접 수정한 현재 본문:\n${input.revision.editedPrompt}\n- 추가 의견:\n${input.revision.feedback}\n\n위 수정 본문을 새 기준점으로 삼고, 추가 의견을 반영해 세 가지 버전을 다시 작성하라.\n기존 본문을 그대로 반복하지 말고, 무엇이 바뀌었는지 사용자가 바로 느낄 만큼 구체적인 표현과 실행 조건을 새로 넣어라.`
     : "";
 
   return `너는 사용자의 평범한 질문을 AI가 깊게 사고할 수밖에 없는 궁극 질문 프롬프트로 재설계한다.

@@ -133,4 +133,38 @@ describe("synthesizeUltimatePrompt service", () => {
     expect(prompt).toContain("사용자가 직접 고친 깊은 질문");
     expect(prompt).toContain("결과를 더 전문가답고 실행 순서가 보이게 바꿔줘.");
   });
+
+  it("retries when a refinement repeats the selected prompt unchanged", async () => {
+    const requestStructuredOutput = vi.fn()
+      .mockResolvedValueOnce({
+        shortVersion: "수정 전 짧은 버전",
+        deepVersion: "사용자가 직접 고친 깊은 질문",
+        expertVersion: "수정 전 전문가 버전",
+        whyThisPromptIsStrong: ["사용자 피드백을 반영한다."],
+        improvementSuggestions: []
+      })
+      .mockResolvedValueOnce({
+        shortVersion: "실행 방법을 넣은 짧은 버전",
+        deepVersion: "현실적으로 바로 실행할 수 있는 순서를 추가한 깊은 버전",
+        expertVersion: "실행 검증 루프를 포함한 전문가 버전",
+        whyThisPromptIsStrong: ["수정 의견이 실제 문장에 반영됐다."],
+        improvementSuggestions: []
+      });
+
+    const result = await synthesizeUltimatePrompt({
+      ...validInput,
+      revision: {
+        selectedVersion: "deepVersion",
+        editedPrompt: "사용자가 직접 고친 깊은 질문",
+        feedback: "현실적으로 바로 만들 수 있는 방법을 추가해서 다시 알려줘."
+      }
+    }, requestStructuredOutput);
+
+    expect(requestStructuredOutput).toHaveBeenCalledTimes(2);
+    expect(requestStructuredOutput.mock.calls[1]?.[0].prompt).toContain("기존 본문을 그대로 반복하지 말고");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.deepVersion).toContain("현실적으로 바로 실행");
+    }
+  });
 });

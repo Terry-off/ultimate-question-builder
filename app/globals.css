@@ -942,6 +942,18 @@ button:disabled {
   color: rgba(238, 244, 250, 0.42);
 }
 
+.result-refine-error {
+  margin: 10px 0 0;
+  border: 1px solid rgba(255, 155, 166, 0.28);
+  border-radius: 14px;
+  background: rgba(255, 155, 166, 0.08);
+  color: var(--danger);
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
 .refine-action {
   margin-top: 12px;
 }

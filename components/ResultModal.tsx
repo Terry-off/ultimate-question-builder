@@ -10,12 +10,13 @@ export type ResultRefineRequest = PromptRevision;
 type ResultModalProps = {
   readonly result: UltimatePromptResult;
   readonly loading: boolean;
+  readonly error?: string;
   readonly onBackToFollowups: () => void;
   readonly onReset: () => void;
   readonly onRefine: (request: ResultRefineRequest) => void;
 };
 
-export function ResultModal({ result, loading, onBackToFollowups, onReset, onRefine }: ResultModalProps) {
+export function ResultModal({ result, loading, error, onBackToFollowups, onReset, onRefine }: ResultModalProps) {
   const [activeVersion, setActiveVersion] = useState<PromptVersionId>("deepVersion");
   const [editable, setEditable] = useState(false);
   const [editedPrompts, setEditedPrompts] = useState<EditablePromptMap>(() => createEditablePromptMap(result));
@@ -79,6 +80,7 @@ export function ResultModal({ result, loading, onBackToFollowups, onReset, onRef
               className="revision-input"
             />
           </label>
+          {error ? <p role="alert" className="result-refine-error">{error}</p> : null}
           <button type="button" disabled={!canRefine} onClick={submitRefinement} className="primary-action refine-action">
             <RefreshCw size={16} />
             {loading ? "다시 만드는 중..." : "다시 답변 받기"}

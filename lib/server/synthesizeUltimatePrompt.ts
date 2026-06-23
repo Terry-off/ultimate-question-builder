@@ -2,12 +2,26 @@ import { requestStructuredOutput, type RequestStructuredOutputInput } from "../l
 import { ultimatePromptResultJsonSchema } from "../openaiSchemas";
 import { buildSynthesizeUltimatePrompt } from "../prompts/synthesizeUltimatePrompt";
 import { buildImprovementSuggestions, calculateQualityScore } from "../qualityScore";
-import { synthesizePromptRequestSchema, ultimatePromptResultSchema, type UltimatePromptResult } from "../types";
+import { synthesizePromptRequestSchema, ultimatePromptResultSchema, type PromptRevision, type UltimatePromptResult } from "../types";
 
 type ServiceResult<T> = { ok: true; data: T } | { ok: false; error: string; status: number };
 type StructuredRequester = (input: RequestStructuredOutputInput<any>) => Promise<any>;
+type ModelPromptResult = Omit<UltimatePromptResult, "qualityScore">;
+type RetryReason = "invalid_output" | "unchanged_revision";
 
 const modelOutputSchema = ultimatePromptResultSchema.omit({ qualityScore: true });
+const retryInstructions: Record<RetryReason, string> = {
+  invalid_output: "이전 응답은 유효한 JSON이 아니었다. 스키마에 맞는 JSON만 출력하라.",
+  unchanged_revision: "이전 응답은 수정 요청을 반영하지 않고 기존 본문을 그대로 반복했다. 기존 본문을 그대로 반복하지 말고, 사용자의 추가 의견이 세 가지 버전 모두에서 눈에 보이게 드러나도록 새로 작성하라."
+};
+
+const normalizePromptText = (value: string) => value.trim().replace(/\s+/g, " ");
+
+const repeatsSelectedRevision = (revision: PromptRevision | undefined, result: ModelPromptResult) => {
+  if (!revision) return false;
+
+  return normalizePromptText(result[revision.selectedVersion]) === normalizePromptText(revision.editedPrompt);
+};
 
 export async function synthesizeUltimatePrompt(
   input: unknown,
@@ -21,17 +35,24 @@ export async function synthesizeUltimatePrompt(
 
   const request = parsed.data;
   const prompt = buildSynthesizeUltimatePrompt(request);
+  let retryReason: RetryReason = "invalid_output";
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
       const modelResult = await structuredRequester({
         apiKey: request.apiKey,
         model: request.model,
-        prompt: attempt === 0 ? prompt : `${prompt}\n\n이전 응답은 유효한 JSON이 아니었다. 스키마에 맞는 JSON만 출력하라.`,
+        prompt: attempt === 0 ? prompt : `${prompt}\n\n${retryInstructions[retryReason]}`,
         schemaName: "ultimate_prompt_result",
         jsonSchema: ultimatePromptResultJsonSchema,
         schema: modelOutputSchema
       });
+
+      if (repeatsSelectedRevision(request.revision, modelResult)) {
+        retryReason = "unchanged_revision";
+        continue;
+      }
+
       const qualityScore = calculateQualityScore({
         promptText: `${modelResult.shortVersion}\n${modelResult.deepVersion}\n${modelResult.expertVersion}`,
         followupAnswers: request.followupAnswers
@@ -47,7 +68,9 @@ export async function synthesizeUltimatePrompt(
           ]
         }
       };
-    } catch {
+    } catch (caught) {
+      if (!(caught instanceof Error)) throw caught;
+      retryReason = "invalid_output";
       continue;
     }
   }
