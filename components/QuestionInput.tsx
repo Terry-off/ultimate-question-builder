@@ -21,7 +21,7 @@ export function QuestionInput({ rawQuestion, error, loading = false, onChange, o
           onChange={(event) => onChange(event.target.value)}
           rows={4}
           className="console-textarea"
-          placeholder="너의 아이디어를 의식의 흐름대로 입력해 봐"
+          placeholder="너의 생각을 아무거나 적어봐. 내가 최고의 질문으로 만들어줄게."
         />
       </div>
       {error ? <p className="console-error">{error}</p> : null}
@@ -31,7 +31,7 @@ export function QuestionInput({ rawQuestion, error, loading = false, onChange, o
         onClick={onSubmit}
         className="primary-action"
       >
-        {loading ? "분석 중..." : "궁극의 질문으로 만들어"}
+        {loading ? "분석 중..." : "내 생각을 도와줘"}
       </button>
     </section>
   );

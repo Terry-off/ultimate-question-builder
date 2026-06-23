@@ -97,7 +97,7 @@ describe("main page synthesis errors", () => {
     await user.click(screen.getByRole("button", { name: "TEST" }));
 
     await user.type(screen.getByRole("textbox"), "I want to turn a cafe idea into a concrete launch question.");
-    await user.click(screen.getByRole("button", { name: /궁극.*질문.*만들/ }));
+    await user.click(screen.getByRole("button", { name: "내 생각을 도와줘" }));
 
     await user.click(await screen.findByRole("button", { name: "quiet workers" }));
     await user.click(screen.getByRole("button", { name: "warm" }));
