@@ -9,7 +9,7 @@ import { MatrixClickEffect } from "@/components/MatrixClickEffect";
 import { QuestionInput } from "@/components/QuestionInput";
 import { ResultModal, type ResultRefineRequest } from "@/components/ResultModal";
 import { STORED_API_KEY_SENTINEL } from "@/lib/apiKeyShared";
-import { readServerApiKeyState, readStoredApiKey, saveServerApiKey, saveStoredApiKey } from "@/lib/clientApiKey";
+import { readServerApiKeyState, readStoredApiKey, saveServerApiKey, saveStoredApiKey, testApiKeyConnection } from "@/lib/clientApiKey";
 import { createDirectionSettings } from "@/lib/directionSettings";
 import { readStoredModel, readStoredProvider, saveStoredModel, saveStoredProvider } from "@/lib/modelPreference";
 import { DEFAULT_PROVIDER, PROVIDER_API_KEY_LABELS, getDefaultModelForProvider, type ModelProviderId } from "@/lib/modelProviders";
@@ -99,6 +99,12 @@ export default function Page() {
     saveStoredApiKey(provider, nextApiKey);
     void saveServerApiKey(provider, nextApiKey).catch(() => undefined);
     if (nextApiKey) setError(undefined);
+  };
+
+  const testAndSaveApiKey = async (value: string) => {
+    const nextApiKey = value.trim();
+    await testApiKeyConnection(provider, model, nextApiKey);
+    updateApiKey(nextApiKey);
   };
 
   const updateProvider = (value: ModelProviderId) => {
@@ -271,6 +277,7 @@ export default function Page() {
             model={model}
             onProviderChange={updateProvider}
             onApiKeyChange={updateApiKey}
+            onApiKeyTest={testAndSaveApiKey}
             onModelChange={updateModel}
           />
         </div>

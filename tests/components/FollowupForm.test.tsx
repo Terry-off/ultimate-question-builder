@@ -118,4 +118,22 @@ describe("FollowupForm", () => {
       ])
     );
   });
+
+  it("submits adjusted direction values from the mobile dial", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    render(<FollowupForm questions={[...questions]} directionSettings={directionSettings} initialAnswers={{}} onSubmit={onSubmit} />);
+
+    fireEvent.keyDown(screen.getByRole("slider", { name: "사업 가능성을 보고 싶어요 모바일 다이얼" }), { key: "ArrowRight" });
+    await user.click(screen.getByRole("button", { name: "궁극의 질문 생성" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.arrayContaining([
+        expect.objectContaining({ type: "strategy_business", weight: 85 }),
+        expect.objectContaining({ type: "critique_risk", weight: 45 })
+      ])
+    );
+  });
 });

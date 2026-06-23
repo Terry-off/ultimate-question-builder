@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import { QUESTION_TYPE_LABELS } from "@/lib/questionTypes";
 import type { DirectionSetting, FollowupAnswer, FollowupQuestion } from "@/lib/types";
 
@@ -11,6 +11,33 @@ export type FollowupFormProps = {
   error?: string;
   loading?: boolean;
   onSubmit: (answers: FollowupAnswer[], directionSettings: DirectionSetting[]) => void;
+};
+
+const DIAL_STEP = 5;
+const DIAL_MAX = 100;
+const DIAL_MIN = 0;
+const DIAL_START_DEGREES = -135;
+const DIAL_ARC_DEGREES = 270;
+
+type DialStyle = CSSProperties & {
+  readonly "--dial-progress": string;
+  readonly "--dial-angle": string;
+};
+
+const clampWeight = (weight: number) => Math.min(DIAL_MAX, Math.max(DIAL_MIN, weight));
+
+const snapWeight = (weight: number) => clampWeight(Math.round(weight / DIAL_STEP) * DIAL_STEP);
+
+const getDialStyle = (weight: number): DialStyle => ({
+  "--dial-progress": `${weight}%`,
+  "--dial-angle": `${DIAL_START_DEGREES + (weight / DIAL_MAX) * DIAL_ARC_DEGREES}deg`
+});
+
+const getPointerWeight = (element: HTMLElement, clientX: number) => {
+  const rect = element.getBoundingClientRect();
+  if (rect.width <= 0) return DIAL_MIN;
+
+  return snapWeight(((clientX - rect.left) / rect.width) * DIAL_MAX);
 };
 
 export function FollowupForm({ questions, directionSettings, initialAnswers, error, loading = false, onSubmit }: FollowupFormProps) {
@@ -25,6 +52,41 @@ export function FollowupForm({ questions, directionSettings, initialAnswers, err
 
   const updateWeight = (type: DirectionSetting["type"], weight: number) => {
     setSettings((current) => current.map((item) => (item.type === type ? { ...item, weight } : item)));
+  };
+
+  const startDialDrag = (type: DirectionSetting["type"], event: PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    updateWeight(type, getPointerWeight(event.currentTarget, event.clientX));
+  };
+
+  const moveDialDrag = (type: DirectionSetting["type"], event: PointerEvent<HTMLDivElement>) => {
+    if (event.buttons !== 1) return;
+    updateWeight(type, getPointerWeight(event.currentTarget, event.clientX));
+  };
+
+  const updateDialWithKeyboard = (type: DirectionSetting["type"], currentWeight: number, event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+      event.preventDefault();
+      updateWeight(type, snapWeight(currentWeight + DIAL_STEP));
+      return;
+    }
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+      event.preventDefault();
+      updateWeight(type, snapWeight(currentWeight - DIAL_STEP));
+      return;
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      updateWeight(type, DIAL_MIN);
+      return;
+    }
+
+    if (event.key === "End") {
+      event.preventDefault();
+      updateWeight(type, DIAL_MAX);
+    }
   };
 
   const toggleChoice = (id: string, choice: string) => {
@@ -69,16 +131,34 @@ export function FollowupForm({ questions, directionSettings, initialAnswers, err
                 <span>{QUESTION_TYPE_LABELS[item.type]}</span>
                 <span className="tuning-value">{item.weight}</span>
               </span>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                value={item.weight}
-                aria-label={`${QUESTION_TYPE_LABELS[item.type]} 반영 정도`}
-                onChange={(event) => updateWeight(item.type, Number(event.target.value))}
-                className="tuning-range"
-              />
+              <div className="tuning-control">
+                <input
+                  type="range"
+                  min={DIAL_MIN}
+                  max={DIAL_MAX}
+                  step={DIAL_STEP}
+                  value={item.weight}
+                  aria-label={`${QUESTION_TYPE_LABELS[item.type]} 반영 정도`}
+                  onChange={(event) => updateWeight(item.type, Number(event.target.value))}
+                  className="tuning-range"
+                />
+                <div
+                  role="slider"
+                  tabIndex={0}
+                  aria-label={`${QUESTION_TYPE_LABELS[item.type]} 모바일 다이얼`}
+                  aria-valuemin={DIAL_MIN}
+                  aria-valuemax={DIAL_MAX}
+                  aria-valuenow={item.weight}
+                  aria-valuetext={`${item.weight}`}
+                  className="tuning-dial-control"
+                  style={getDialStyle(item.weight)}
+                  onPointerDown={(event) => startDialDrag(item.type, event)}
+                  onPointerMove={(event) => moveDialDrag(item.type, event)}
+                  onKeyDown={(event) => updateDialWithKeyboard(item.type, item.weight, event)}
+                >
+                  <span className="tuning-dial-number">{item.weight}</span>
+                </div>
+              </div>
             </label>
           ))}
         </div>

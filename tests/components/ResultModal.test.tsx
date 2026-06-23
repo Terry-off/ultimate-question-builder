@@ -105,6 +105,6 @@ describe("ResultModal", () => {
 
     expect(screen.getByText("처음 입력한 질문입니다.")).toBeInTheDocument();
     expect(screen.getByText("누구에게 필요한가요?")).toBeInTheDocument();
-    expect(screen.getByText("중학생")).toBeInTheDocument();
+    expect(screen.getByText("중학생")).toHaveClass("source-answer");
   });
 });

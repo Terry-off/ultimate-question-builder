@@ -88,7 +88,7 @@ export function ResultModal({ result, source, loading, error, onBackToFollowups,
                   {source.followupAnswers.map((item) => (
                     <li key={item.id}>
                       <span>{item.question}</span>
-                      <em>{item.answer || "선택 없음"}</em>
+                      <em className="source-answer">{item.answer || "선택 없음"}</em>
                     </li>
                   ))}
                 </ul>

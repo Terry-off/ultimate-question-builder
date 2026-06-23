@@ -4,7 +4,32 @@ import { describe, expect, it, vi } from "vitest";
 import { ApiKeyMenu } from "@/components/ApiKeyMenu";
 
 describe("ApiKeyMenu", () => {
-  it("saves the API key through callback without rendering the secret", async () => {
+  it("tests a new API key before activating it without rendering the secret", async () => {
+    const user = userEvent.setup();
+    const onApiKeyTest = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <ApiKeyMenu
+        apiKey=""
+        provider="openai"
+        model="gpt-5.5"
+        onProviderChange={vi.fn()}
+        onApiKeyChange={vi.fn()}
+        onApiKeyTest={onApiKeyTest}
+        onModelChange={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "API등록" }));
+    await user.type(screen.getByLabelText("OpenAI API 키"), "sk-secret");
+    await user.click(screen.getByRole("button", { name: "TEST" }));
+
+    expect(onApiKeyTest).toHaveBeenCalledWith("sk-secret");
+    expect(await screen.findByText("API가 정상 작동해요. 바로 사용할 수 있어요.")).toBeInTheDocument();
+    expect(screen.queryByText("sk-secret")).not.toBeInTheDocument();
+  });
+
+  it("does not apply a new key before TEST succeeds", async () => {
     const user = userEvent.setup();
     const onApiKeyChange = vi.fn();
 
@@ -15,6 +40,7 @@ describe("ApiKeyMenu", () => {
         model="gpt-5.5"
         onProviderChange={vi.fn()}
         onApiKeyChange={onApiKeyChange}
+        onApiKeyTest={vi.fn().mockResolvedValue(undefined)}
         onModelChange={vi.fn()}
       />
     );
@@ -23,8 +49,8 @@ describe("ApiKeyMenu", () => {
     await user.type(screen.getByLabelText("OpenAI API 키"), "sk-secret");
     await user.click(screen.getByRole("button", { name: "적용" }));
 
-    expect(onApiKeyChange).toHaveBeenCalledWith("sk-secret");
-    expect(screen.queryByText("sk-secret")).not.toBeInTheDocument();
+    expect(onApiKeyChange).not.toHaveBeenCalled();
+    expect(screen.getByText("먼저 TEST로 API 키가 작동하는지 확인해주세요.")).toBeInTheDocument();
   });
 
   it("keeps the saved API key when applying with an empty replacement field", async () => {
@@ -38,6 +64,7 @@ describe("ApiKeyMenu", () => {
         model="gpt-5.5"
         onProviderChange={vi.fn()}
         onApiKeyChange={onApiKeyChange}
+        onApiKeyTest={vi.fn().mockResolvedValue(undefined)}
         onModelChange={vi.fn()}
       />
     );
@@ -60,6 +87,7 @@ describe("ApiKeyMenu", () => {
         model="gpt-5.5"
         onProviderChange={vi.fn()}
         onApiKeyChange={vi.fn()}
+        onApiKeyTest={vi.fn().mockResolvedValue(undefined)}
         onModelChange={onModelChange}
       />
     );
@@ -81,6 +109,7 @@ describe("ApiKeyMenu", () => {
         model="gpt-5.5"
         onProviderChange={onProviderChange}
         onApiKeyChange={vi.fn()}
+        onApiKeyTest={vi.fn().mockResolvedValue(undefined)}
         onModelChange={vi.fn()}
       />
     );
@@ -102,6 +131,7 @@ describe("ApiKeyMenu", () => {
           model="gpt-5.5"
           onProviderChange={vi.fn()}
           onApiKeyChange={vi.fn()}
+          onApiKeyTest={vi.fn().mockResolvedValue(undefined)}
           onModelChange={vi.fn()}
         />
         <button type="button">바깥 영역</button>

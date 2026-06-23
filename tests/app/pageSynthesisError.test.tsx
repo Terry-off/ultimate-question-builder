@@ -68,6 +68,10 @@ describe("main page synthesis errors", () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
 
+      if (url.includes("/api/test-api-key")) {
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      }
+
       if (url.includes("/api/api-key")) {
         return new Response(JSON.stringify({ hasApiKey: true }), { status: 200 });
       }
@@ -90,7 +94,7 @@ describe("main page synthesis errors", () => {
 
     await user.click(screen.getByRole("button", { name: /API/ }));
     await user.type(screen.getByLabelText(/OpenAI API/), "sk-test");
-    await user.click(screen.getByRole("button", { name: /적용/ }));
+    await user.click(screen.getByRole("button", { name: "TEST" }));
 
     await user.type(screen.getByRole("textbox"), "I want to turn a cafe idea into a concrete launch question.");
     await user.click(screen.getByRole("button", { name: /궁극.*질문.*만들/ }));

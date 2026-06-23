@@ -8,6 +8,10 @@ describe("main page flow", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url.includes("/api/test-api-key")) {
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      }
+
       if (url.includes("/api/analyze-question")) {
         return new Response(JSON.stringify({
           primaryType: "strategy_business",
@@ -104,7 +108,7 @@ describe("main page flow", () => {
 
     await user.click(screen.getByRole("button", { name: "API등록" }));
     await user.type(screen.getByLabelText("OpenAI API 키"), "sk-test");
-    await user.click(screen.getByRole("button", { name: "적용" }));
+    await user.click(screen.getByRole("button", { name: "TEST" }));
 
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "AI 질문 생성 앱의 사업성이 있을지 알고 싶어.");
     await user.click(screen.getByRole("button", { name: "궁극의 질문으로 만들어" }));
@@ -147,7 +151,7 @@ describe("main page flow", () => {
 
     await user.click(screen.getByRole("button", { name: "API등록" }));
     await user.type(screen.getByLabelText("OpenAI API 키"), "sk-test");
-    await user.click(screen.getByRole("button", { name: "적용" }));
+    await user.click(screen.getByRole("button", { name: "TEST" }));
 
     await waitFor(() => expect(screen.queryByText("OpenAI API 키를 먼저 입력해주세요.")).not.toBeInTheDocument());
   });
@@ -157,6 +161,10 @@ describe("main page flow", () => {
     let resolveAnalyze!: (response: Response) => void;
 
     vi.stubGlobal("fetch", vi.fn((url: string) => {
+      if (url.includes("/api/test-api-key")) {
+        return Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+      }
+
       if (url.includes("/api/analyze-question")) {
         return new Promise<Response>((resolve) => {
           resolveAnalyze = resolve;
@@ -170,7 +178,7 @@ describe("main page flow", () => {
 
     await user.click(screen.getByRole("button", { name: "API등록" }));
     await user.type(screen.getByLabelText("OpenAI API 키"), "sk-test");
-    await user.click(screen.getByRole("button", { name: "적용" }));
+    await user.click(screen.getByRole("button", { name: "TEST" }));
     await user.type(screen.getByLabelText("AI에게 묻고 싶은 질문"), "기다리는 동안 로딩이 보여야 해.");
     await user.click(screen.getByRole("button", { name: "궁극의 질문으로 만들어" }));
 
@@ -210,9 +218,16 @@ describe("main page flow", () => {
 
     await user.click(screen.getByRole("button", { name: "API등록" }));
     await user.type(screen.getByLabelText("OpenAI API 키"), "sk-persisted");
-    await user.click(screen.getByRole("button", { name: "적용" }));
+    await user.click(screen.getByRole("button", { name: "TEST" }));
 
     expect(localStorage.getItem("ultimate-question-builder:openai-api-key")).toBe("sk-persisted");
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/test-api-key",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ provider: "openai", model: "gpt-5.5", apiKey: "sk-persisted" })
+      })
+    );
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
         "/api/api-key?provider=openai",
@@ -330,7 +345,7 @@ describe("main page flow", () => {
     await user.click(screen.getByRole("button", { name: "CLAUDE" }));
     await user.selectOptions(screen.getByLabelText("CLAUDE 모델"), "claude-opus-4-8");
     await user.type(screen.getByLabelText("Claude API 키"), "sk-ant-persisted");
-    await user.click(screen.getByRole("button", { name: "적용" }));
+    await user.click(screen.getByRole("button", { name: "TEST" }));
 
     expect(localStorage.getItem("ultimate-question-builder:model-provider")).toBe("anthropic");
     expect(localStorage.getItem("ultimate-question-builder:model:anthropic")).toBe("claude-opus-4-8");

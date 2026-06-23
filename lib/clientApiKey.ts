@@ -1,5 +1,6 @@
 import { STORED_API_KEY_SENTINEL, getApiKeyStorageKey, isSharedApiKeyPersistenceEnabled } from "./apiKeyShared";
 import { DEFAULT_PROVIDER, type ModelProviderId } from "./modelProviders";
+import { postJson } from "./postJson";
 
 const hasStoredApiKeyFlag = (value: unknown): value is { hasApiKey: boolean } =>
   typeof value === "object" && value !== null && "hasApiKey" in value && typeof value.hasApiKey === "boolean";
@@ -52,4 +53,8 @@ export async function saveServerApiKey(providerOrValue: ModelProviderId | string
     headers: { "Content-Type": "application/json" },
     body: apiKey ? JSON.stringify({ provider, apiKey }) : undefined
   });
+}
+
+export async function testApiKeyConnection(provider: ModelProviderId, model: string, apiKey: string) {
+  await postJson("/api/test-api-key", { provider, model, apiKey });
 }
