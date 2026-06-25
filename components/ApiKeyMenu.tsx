@@ -151,7 +151,7 @@ export function ApiKeyMenu({
                 value={draftKey}
                 onChange={(event) => updateDraftKey(event.target.value)}
                 className="api-input api-key-input"
-                placeholder={apiKey ? "API키는 사용자의 로컬에 독립 저장됩니다." : PROVIDER_API_KEY_PLACEHOLDERS[provider]}
+                placeholder={apiKey ? "API키는 사용자의 로컬에만 저장됩니다." : PROVIDER_API_KEY_PLACEHOLDERS[provider]}
               />
               <button
                 type="button"

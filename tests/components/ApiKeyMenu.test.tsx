@@ -70,7 +70,7 @@ describe("ApiKeyMenu", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "GPT-5.5 작동중" }));
-    expect(screen.getByPlaceholderText("API키는 사용자의 로컬에 독립 저장됩니다.")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("API키는 사용자의 로컬에만 저장됩니다.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "적용" }));
 
     expect(onApiKeyChange).not.toHaveBeenCalled();
